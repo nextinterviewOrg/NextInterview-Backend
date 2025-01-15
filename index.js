@@ -26,11 +26,15 @@ const userRoutes = require("./src/routes/userRoutes");
 const jobResponseRoutes = require("./src/routes/jobResponseRoutes");
 const designationRoutes = require("./src/routes/designationRoutes");
 const companyDataRoutes = require("./src/routes/companyDataRoutes");
+const questionnaireRoutes = require("./src/routes/questionnaireRoutes");
+const topicRoutes = require("./src/routes/topicRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
 app.use("/designation", designationRoutes);
 app.use("/companyData", companyDataRoutes);
+app.use("/questionnaire", questionnaireRoutes);
+app.use("/topic", topicRoutes); 
 
 app.listen(5000, () => {
   console.log("Server started on port 5000");
