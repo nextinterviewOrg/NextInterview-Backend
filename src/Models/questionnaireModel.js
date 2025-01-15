@@ -8,6 +8,10 @@ const questionnnaireSchema = new mongoose.Schema({
   data_experience_response: {
     type: String,
   },
+  user_id:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",  
+  },
   data_scheduled_interview_response: {
     type: Boolean,
   },
@@ -31,28 +35,30 @@ const questionnnaireSchema = new mongoose.Schema({
       ref: "Designation",
     },
   },
-  data_past_interview_response: {
-    company_Name: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
-    },
-    designation: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Designation",
-    },
-    what_went_well: {
-      type: String,
-    },
-    what_went_bad: {
-      type: String,
-    },
-    topics: [
-      {
+  data_past_interview_response: [
+    {
+      company_Name: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Topic",
+        ref: "Company",
       },
-    ],
-  },
+      designation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Designation",
+      },
+      what_went_well: {
+        type: String,
+      },
+      what_went_bad: {
+        type: String,
+      },
+      topics: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Topic",
+        },
+      ],
+    },
+  ],
   data_motive_response: {
     type: String,
   },

@@ -5,6 +5,7 @@ const { Webhook } = require("svix");
 const crypto = require("crypto");
 const { buffer } = require("micro");
 const { createClerkClient } = require("@clerk/backend");
+const Questionnaire = require("../Models/questionnaireModel");
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -96,6 +97,113 @@ exports.getUsers = async function (req, res) {
     res.status(200).json({
       success: true,
       data: users,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.createUserProfile = async function (req, res) {
+  try {
+    const {
+      user_id, // MongoDB _id of the user
+      user_name,
+      profile_pic,
+      user_linkedin_profile_link,
+      data_job_response,
+      data_experience_response,
+      data_scheduled_interview_response,
+      data_interview_schedule_response,
+      data_interview_scheduled_response,
+      data_past_interview_response,
+      data_motive_response,
+    } = req.body;
+
+    // Find the user by MongoDB _id
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    if (user.user_data_questionnaire) {
+      const QuestionnaireData = await Questionnaire.findById(
+        user.user_data_questionnaire
+      );
+
+      QuestionnaireData.data_job_response =
+        data_job_response || QuestionnaireData.data_job_response;
+      QuestionnaireData.data_experience_response =
+        data_experience_response || QuestionnaireData.data_experience_response;
+      QuestionnaireData.data_scheduled_interview_response =
+        data_scheduled_interview_response ||
+        QuestionnaireData.data_scheduled_interview_response;
+      QuestionnaireData.data_interview_schedule_response =
+        data_interview_schedule_response ||
+        QuestionnaireData.data_interview_schedule_response;
+      QuestionnaireData.data_interview_scheduled_response =
+        data_interview_scheduled_response ||
+        QuestionnaireData.data_interview_scheduled_response;
+      QuestionnaireData.data_past_interview_response =
+        data_past_interview_response ||
+        QuestionnaireData.data_past_interview_response;
+      QuestionnaireData.data_motive_response =
+        data_motive_response || QuestionnaireData.data_motive_response;
+      await QuestionnaireData.save();
+    } else {
+      // Create a new Questionnaire document with only provided fields
+      const questionnaireFields = {
+        ...(data_job_response && { data_job_response }),
+        ...(data_experience_response && { data_experience_response }),
+        ...(data_scheduled_interview_response !== undefined && {
+          data_scheduled_interview_response,
+        }),
+        ...(data_interview_schedule_response && {
+          data_interview_schedule_response,
+        }),
+        ...(data_interview_scheduled_response && {
+          data_interview_scheduled_response,
+        }),
+        ...(data_past_interview_response && { data_past_interview_response }),
+        ...(data_motive_response && { data_motive_response }),
+      };
+
+      // Create and save the questionnaire only if there are fields to save
+      let questionnaire;
+      if (Object.keys(questionnaireFields).length > 0) {
+        questionnaire = new Questionnaire({
+          ...questionnaireFields,
+          user_id,
+        });
+        await questionnaire.save();
+
+        // Link the questionnaire ID to the user
+        user.user_data_questionnaire = questionnaire._id;
+      }
+
+      // Update user fields only if they are provided
+      if (user_name) user.user_name = user_name;
+      if (profile_pic) user.user_profile_pic = profile_pic;
+      if (user_linkedin_profile_link) {
+        user.user_linkedin_profile_link = user_linkedin_profile_link;
+      }
+    }
+
+    // Save the user document
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User profile and questionnaire updated successfully",
+      data: {
+        user,
+        questionnaire: questionnaire || "No questionnaire data updated",
+      },
     });
   } catch (err) {
     console.log(err);
