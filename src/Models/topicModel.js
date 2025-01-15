@@ -10,3 +10,6 @@ const topicSchema = new mongoose.Schema({
     required: true,
   },
 });
+
+
+module.exports = mongoose.model("Topic", topicSchema);

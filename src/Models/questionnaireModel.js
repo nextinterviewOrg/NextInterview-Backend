@@ -18,7 +18,7 @@ const questionnnaireSchema = new mongoose.Schema({
   data_interview_schedule_response: {
     company: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
+      ref: "CompanyData",
     },
     designation: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,7 +28,7 @@ const questionnnaireSchema = new mongoose.Schema({
   data_interview_scheduled_response: {
     company: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
+      ref: "CompanyData",
     },
     designation: {
       type: mongoose.Schema.Types.ObjectId,
@@ -39,7 +39,7 @@ const questionnnaireSchema = new mongoose.Schema({
     {
       company_Name: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Company",
+        ref: "CompanyData",
       },
       designation: {
         type: mongoose.Schema.Types.ObjectId,
