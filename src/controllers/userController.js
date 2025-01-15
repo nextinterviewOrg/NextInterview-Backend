@@ -13,12 +13,11 @@ const clerkClient = createClerkClient({
 exports.createUser = async function (req, res) {
   try {
     const secret = process.env.CLERK_WEBHOOK_SECRET_KEY;
-    const payload = JSON.stringify(req.body);
+    const payload = req.body;
     const headers = req.headers;
 
     const wh = new Webhook(secret);
     const msg = wh.verify(payload, headers);
-
     // Handle the webhooks
     const eventType = msg.type;
     if (eventType === "user.created") {
