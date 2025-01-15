@@ -1,4 +1,4 @@
-const User = require("../models/userModel");
+const User = require("../models/usersModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Webhook } = require("svix");
@@ -27,7 +27,7 @@ exports.createUser = async function (req, res) {
       const firstName = msg.data.first_name;
 
       const userExists = await User.findOne({
-        email: msg.data.email_addresses[0].email_address,
+        user_email: msg.data.email_addresses[0].email_address,
       });
       if (userExists) {
         console.log("User already exists in database");
