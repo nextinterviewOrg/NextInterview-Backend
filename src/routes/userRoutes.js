@@ -10,6 +10,6 @@ const { requireAuth } =require  ('@clerk/express');
 router.post("/createUser",bodyParser.raw({ type: 'application/json' }), createUser);
 // router.get("/getUsers",  ClerkExpressWithAuth(),getUsers);
 // requireAuth({ signInUrl: '/' })
-router.get("/getUsers",  requireAuth(),authorizeRole('admin'),getUsers);
+router.get("/getUsers",requireAuth(),authorizeRole('admin'),getUsers);
  
 module.exports = router;
