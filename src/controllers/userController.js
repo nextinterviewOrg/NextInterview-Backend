@@ -15,6 +15,7 @@ exports.createUser = async function (req, res) {
   try {
     const secret = process.env.CLERK_WEBHOOK_SECRET_KEY;
     const payload = JSON.stringify(req.body); 
+    console.log("payload", payload);
     const headers = req.headers;
 
     const wh = new Webhook(secret);
