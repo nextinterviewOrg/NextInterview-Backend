@@ -14,6 +14,7 @@ const clerkClient = createClerkClient({
 exports.createUser = async function (req, res) {
   try {
     const secret = process.env.CLERK_WEBHOOK_SECRET_KEY;
+    // const secret="whsec_AlAVnrVNDBOjRfriagCwraben1BdsB+H"; //testing localhost
     const payload = JSON.stringify(req.body); 
     console.log("payload", payload);
     const headers = req.headers;
@@ -43,7 +44,7 @@ exports.createUser = async function (req, res) {
         user_name:
           msg.data.first_name + " " + msg.data.last_name || "Anonymous",
         user_email: msg.data.email_addresses[0].email_address,
-        user_phone_number: msg.data.phone_numbers[0].phone_number,
+        user_phone_number: msg.data.phone_numbers[0]?.phone_number||null,
       });
       await user.save();
       // Add default public metadata
@@ -63,7 +64,7 @@ exports.createUser = async function (req, res) {
           user_name:
             msg.data.first_name + " " + msg.data.last_name || "Anonymous",
           user_email: msg.data.email_addresses[0].email_address,
-          user_phone_number: msg.data.phone_numbers[0].phone_number,
+          user_phone_number: msg.data.phone_numbers[0]?.phone_number||null,
           user_role: msg.data.public_metadata.role,
         }
       );
