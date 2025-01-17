@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const { buffer } = require("micro");
 const { createClerkClient } = require("@clerk/backend");
 const Questionnaire = require("../models/questionnaireModel");
+const connectDB = require("../config/dbConfig");
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -13,6 +14,7 @@ const clerkClient = createClerkClient({
 
 exports.createUser = async function (req, res) {
   try {
+    connectDB();
     const secret = process.env.CLERK_WEBHOOK_SECRET_KEY;
     // const secret="whsec_AlAVnrVNDBOjRfriagCwraben1BdsB+H"; //testing localhost
     const payload = JSON.stringify(req.body); 
