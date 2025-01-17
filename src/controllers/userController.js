@@ -17,7 +17,7 @@ exports.createUser = async function (req, res) {
     connectDB();
     const secret = process.env.CLERK_WEBHOOK_SECRET_KEY;
     // const secret="whsec_AlAVnrVNDBOjRfriagCwraben1BdsB+H"; //testing localhost
-    const payload = JSON.stringify(req.body); 
+    const payload = req.body; 
     console.log("payload", payload);
     const headers = req.headers;
 
