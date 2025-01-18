@@ -6,6 +6,7 @@ const { Webhook } = require("svix");
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 connectDB()
   .then(() => {
@@ -28,6 +29,7 @@ const designationRoutes = require("./src/routes/designationRoutes");
 const companyDataRoutes = require("./src/routes/companyDataRoutes");
 const questionnaireRoutes = require("./src/routes/questionnaireRoutes");
 const topicRoutes = require("./src/routes/topicRoutes");
+const interviewRoutes= require("./src/routes/interviewRoundRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -35,7 +37,8 @@ app.use("/designation", designationRoutes);
 app.use("/companyData", companyDataRoutes);
 app.use("/questionnaire", questionnaireRoutes);
 app.use("/topic", topicRoutes); 
+app.use("/interviewRound", interviewRoutes);
 
-app.listen(5000, () => {
-  console.log("Server started on port 5000");
-});
+// app.listen(5000, () => {
+//   console.log("Server started on port 5000");
+// });
