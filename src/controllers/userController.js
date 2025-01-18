@@ -182,7 +182,7 @@ exports.createUserProfile = async function (req, res) {
         });
         await questionnaire.save();
 
-        // Link the questionnaire ID to the user
+        
         user.user_data_questionnaire = questionnaire._id;
       }
 

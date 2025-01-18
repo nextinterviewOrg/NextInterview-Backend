@@ -8,9 +8,8 @@ const questionnnaireSchema = new mongoose.Schema({
   data_experience_response: {
     type: String,
   },
-  user_id:{
+  user_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",  
   },
   data_scheduled_interview_response: {
     type: Boolean,
