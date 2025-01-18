@@ -1,7 +1,7 @@
 const e = require("express");
 const express = require("express");
 const router= express.Router();
-const { createUser, getUsers } = require("../controllers/userController");
+const { createUser, getUsers, createUserProfile, getUserByClerkId } = require("../controllers/userController");
 const bodyParser= require('body-parser');
 // const { ClerkExpressWithAuth } =require ('@clerk/clerk-sdk-node')
 const authorizeRole= require('../middleware/authorizeRole');
@@ -11,5 +11,7 @@ router.post("/createUser",bodyParser.raw({ type: 'application/json' }), createUs
 // router.get("/getUsers",  ClerkExpressWithAuth(),getUsers);
 // requireAuth({ signInUrl: '/' })
 router.get("/getUsers",requireAuth(),authorizeRole('admin'),getUsers);
+router.post("/updateProfile",createUserProfile);
+router.get("/getUserByClerk/:clerk_id",getUserByClerkId);
  
 module.exports = router;
