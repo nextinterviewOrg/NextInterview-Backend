@@ -1,4 +1,4 @@
-const JobResponse = require("../Models/jobResponseModel");
+const JobResponse = require("../models/jobResponseModel");
 
 // Create a new JobResponse
 exports.createJobResponse = async (req, res) => {
@@ -33,6 +33,7 @@ exports.createJobResponse = async (req, res) => {
 // Get all JobResponses
 exports.getAllJobResponses = async (req, res) => {
   try {
+    console.log("getAllJobResponses");
     const jobResponses = await JobResponse.find();
 
     res.status(200).json({

@@ -8,10 +8,8 @@ router.post("/", companyDataController.createCompanyData);
 // Get all CompanyData records
 router.get("/", companyDataController.getAllCompanyData);
 
-// Get a single CompanyData record by ID
 router.get("/:id", companyDataController.getCompanyDataById);
 
-// Update a CompanyData record
 router.put("/:id", companyDataController.updateCompanyData);
 
 // Delete a CompanyData record

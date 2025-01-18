@@ -1,11 +1,12 @@
-const User = require("../Models/user-Model");
+const User = require("../models/user-Model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Webhook } = require("svix");
 const crypto = require("crypto");
 const { buffer } = require("micro");
 const { createClerkClient } = require("@clerk/backend");
-const Questionnaire = require("../Models/questionnaireModel");
+const Questionnaire = require("../models/questionnaireModel");
+const connectDB = require("../config/dbConfig");
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -13,8 +14,13 @@ const clerkClient = createClerkClient({
 
 exports.createUser = async function (req, res) {
   try {
+    connectDB();
     const secret = process.env.CLERK_WEBHOOK_SECRET_KEY;
-    const payload = req.body;
+    // const secret="whsec_AlAVnrVNDBOjRfriagCwraben1BdsB+H"; //testing localhost
+    // const secret = "whsec_KqKO9DM212HCtgsZIjxySJaaHUIcFbpF";
+    // const payload = JSON.stringify(req.body) || req.body;
+    const payload =req.body;
+    console.log("payload", payload);
     const headers = req.headers;
 
     const wh = new Webhook(secret);
@@ -42,7 +48,7 @@ exports.createUser = async function (req, res) {
         user_name:
           msg.data.first_name + " " + msg.data.last_name || "Anonymous",
         user_email: msg.data.email_addresses[0].email_address,
-        user_phone_number: msg.data.phone_numbers[0].phone_number,
+        user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
       });
       await user.save();
       // Add default public metadata
@@ -62,7 +68,7 @@ exports.createUser = async function (req, res) {
           user_name:
             msg.data.first_name + " " + msg.data.last_name || "Anonymous",
           user_email: msg.data.email_addresses[0].email_address,
-          user_phone_number: msg.data.phone_numbers[0].phone_number,
+          user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
           user_role: msg.data.public_metadata.role,
         }
       );
@@ -109,28 +115,34 @@ exports.getUsers = async function (req, res) {
 
 exports.createUserProfile = async function (req, res) {
   try {
+    console.log(req.body);
     const {
       user_id, // MongoDB _id of the user
       user_name,
       profile_pic,
       user_linkedin_profile_link,
       data_job_response,
+      data_ai_job_response,
       data_experience_response,
       data_scheduled_interview_response,
       data_interview_schedule_response,
       data_interview_scheduled_response,
       data_past_interview_response,
       data_motive_response,
+      profile_status,
+      data_planned_interview_response,
     } = req.body;
 
     // Find the user by MongoDB _id
     const user = await User.findById(user_id);
+    let questionnaire;
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
+
     if (user.user_data_questionnaire) {
       const QuestionnaireData = await Questionnaire.findById(
         user.user_data_questionnaire
@@ -138,6 +150,8 @@ exports.createUserProfile = async function (req, res) {
 
       QuestionnaireData.data_job_response =
         data_job_response || QuestionnaireData.data_job_response;
+      QuestionnaireData.data_ai_job_response =
+        data_ai_job_response || QuestionnaireData.data_ai_job_response;
       QuestionnaireData.data_experience_response =
         data_experience_response || QuestionnaireData.data_experience_response;
       QuestionnaireData.data_scheduled_interview_response =
@@ -154,11 +168,21 @@ exports.createUserProfile = async function (req, res) {
         QuestionnaireData.data_past_interview_response;
       QuestionnaireData.data_motive_response =
         data_motive_response || QuestionnaireData.data_motive_response;
+      QuestionnaireData.data_planned_interview_response =
+        data_planned_interview_response || QuestionnaireData.data_planned_interview_response;
       await QuestionnaireData.save();
+      // Update user fields only if they are provided
+      if (user_name) user.user_name = user_name;
+      if (profile_pic) user.user_profile_pic = profile_pic;
+      if (user_linkedin_profile_link) {
+        user.user_linkedin_profile_link = user_linkedin_profile_link;
+      }
+      if (profile_status) user.profile_status = profile_status;
     } else {
       // Create a new Questionnaire document with only provided fields
       const questionnaireFields = {
         ...(data_job_response && { data_job_response }),
+        ...(data_ai_job_response && { data_ai_job_response }),
         ...(data_experience_response && { data_experience_response }),
         ...(data_scheduled_interview_response !== undefined && {
           data_scheduled_interview_response,
@@ -171,10 +195,11 @@ exports.createUserProfile = async function (req, res) {
         }),
         ...(data_past_interview_response && { data_past_interview_response }),
         ...(data_motive_response && { data_motive_response }),
+        ...(data_planned_interview_response && { data_planned_interview_response }),
       };
 
       // Create and save the questionnaire only if there are fields to save
-      let questionnaire;
+
       if (Object.keys(questionnaireFields).length > 0) {
         questionnaire = new Questionnaire({
           ...questionnaireFields,
@@ -192,6 +217,7 @@ exports.createUserProfile = async function (req, res) {
       if (user_linkedin_profile_link) {
         user.user_linkedin_profile_link = user_linkedin_profile_link;
       }
+      if (profile_status) user.profile_status = profile_status;
     }
 
     // Save the user document
@@ -204,6 +230,29 @@ exports.createUserProfile = async function (req, res) {
         user,
         questionnaire: questionnaire || "No questionnaire data updated",
       },
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.getUserByClerkId = async function (req, res) {
+  try {
+    const { clerk_id } = req.params;
+    const user = await User.findOne({ clerkUserId: clerk_id });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data: user,
     });
   } catch (err) {
     console.log(err);
