@@ -1,5 +1,5 @@
 // src/controllers/interviewRoundController.js
-const InterviewRound = require('../models/interviewRoundModel');
+const InterviewRound = require('../Models/interviewRoundModel');
 
 // Create an Interview Round
 exports.createInterviewRound = async (req, res) => {

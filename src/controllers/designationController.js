@@ -1,4 +1,4 @@
-const Designation = require("../models/designationModel");
+const Designation = require("../Models/designationModel");
 
 // Create a new Designation
 exports.createDesignation = async (req, res) => {
