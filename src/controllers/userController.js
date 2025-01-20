@@ -35,13 +35,13 @@ exports.createUser = async function (req, res) {
       const userExists = await User.findOne({
         user_email: msg.data.email_addresses[0].email_address,
       });
-      if (userExists) {
-        console.log("User already exists in database");
-        return res.status(200).json({
-          success: true,
-          message: "User already exists in database",
-        });
-      }
+      // if (userExists) {
+      //   console.log("User already exists in database");
+      //   return res.status(200).json({
+      //     success: true,
+      //     message: "User already exists in database",
+      //   });
+      // }
 
       const user = new User({
         clerkUserId: msg.data.id,
@@ -51,6 +51,7 @@ exports.createUser = async function (req, res) {
         user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
       });
       await user.save();
+      console.log("User saved to database",user);
       // Add default public metadata
       const updatedUser = await clerkClient.users.updateUser(msg.data.id, {
         public_metadata: {
