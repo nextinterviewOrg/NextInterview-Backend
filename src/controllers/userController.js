@@ -69,7 +69,7 @@ exports.createUser = async function (req, res) {
             msg.data.first_name + " " + msg.data.last_name || "Anonymous",
           user_email: msg.data.email_addresses[0].email_address,
           user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
-          user_role: msg.data.public_metadata.role,
+          user_role: msg.data.public_metadata.role||"user",
         }
       );
       console.log("event  ", user);
