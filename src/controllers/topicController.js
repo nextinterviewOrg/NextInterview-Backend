@@ -1,6 +1,6 @@
 // controllers/topicController.js
 
-const Topic = require("../models/topicModel");
+const Topic = require("../Models/topicModel");
 
 /**
  * @desc    Create a new Topic

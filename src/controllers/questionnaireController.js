@@ -1,6 +1,6 @@
 // controllers/questionnaireController.js
 
-const Questionnaire = require("../models/questionnaireModel");
+const Questionnaire = require("../Models/questionnaireModel");
 
 /**
  * @desc    Create a new Questionnaire
