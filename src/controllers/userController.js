@@ -18,8 +18,8 @@ exports.createUser = async function (req, res) {
     const secret = process.env.CLERK_WEBHOOK_SECRET_KEY;
     // const secret="whsec_AlAVnrVNDBOjRfriagCwraben1BdsB+H"; //testing localhost
     // const secret = "whsec_KqKO9DM212HCtgsZIjxySJaaHUIcFbpF";
-    // const payload = JSON.stringify(req.body) || req.body;
-    const payload =req.body;
+    const payload = JSON.stringify(req.body) || req.body;
+    // const payload =req.body;
     console.log("payload", payload);
     const headers = req.headers;
 
