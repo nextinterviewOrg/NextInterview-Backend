@@ -1,4 +1,4 @@
-const CompanyData = require("../models/companyDataModel");
+const CompanyData = require("../Models/companyDataModel");
 
 // Create a new CompanyData
 exports.createCompanyData = async (req, res) => {

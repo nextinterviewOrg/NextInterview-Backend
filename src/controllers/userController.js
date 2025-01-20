@@ -1,11 +1,11 @@
-const User = require("../models/user-Model");
+const User = require("../Models/user-Model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Webhook } = require("svix");
 const crypto = require("crypto");
 const { buffer } = require("micro");
 const { createClerkClient } = require("@clerk/backend");
-const Questionnaire = require("../models/questionnaireModel");
+const Questionnaire = require("../Models/questionnaireModel");
 const connectDB = require("../config/dbConfig");
 
 const clerkClient = createClerkClient({
