@@ -30,6 +30,7 @@ const companyDataRoutes = require("./src/routes/companyDataRoutes");
 const questionnaireRoutes = require("./src/routes/questionnaireRoutes");
 const topicRoutes = require("./src/routes/topicRoutes");
 const interviewRoutes= require("./src/routes/interviewRoundRoutes");
+const addNewModuleRoutes = require("./src/routes/addNewModuleRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -38,6 +39,7 @@ app.use("/companyData", companyDataRoutes);
 app.use("/questionnaire", questionnaireRoutes);
 app.use("/topic", topicRoutes); 
 app.use("/interviewRound", interviewRoutes);
+app.use("/addNewModule", addNewModuleRoutes);
 
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");
