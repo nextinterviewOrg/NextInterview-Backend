@@ -78,7 +78,7 @@ exports.createUser = async function (req, res) {
       console.log("user deleted ", msg);
       User.findOneAndDelete({ clerkUserId: msg.data.id }).then((user) => {
         if (user) {
-          console.log("User deleted from database");
+          console.log("User deleted from database",user);
         }
       });
     } else {
