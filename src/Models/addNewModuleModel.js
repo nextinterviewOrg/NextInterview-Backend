@@ -34,6 +34,7 @@ const newModuleSchema = new mongoose.Schema(
             ],
             laymanTerms: [
               {
+                topicLevel: String,
                 topicTitle: String,
                 topicInfo: String,
               },

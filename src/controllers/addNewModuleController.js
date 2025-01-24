@@ -42,3 +42,29 @@ exports.getModuleData = async (req, res) => {
     });
   }
 };
+// Delete Module Data
+exports.deleteModule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const moduleData = await NewModule.findByIdAndDelete(id);
+ 
+    if (!moduleData) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+ 
+    res.status(200).json({
+      success: true,
+      message: "Module deleted successfully",
+    });
+  } catch (error) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete module",
+      error: err.message,
+    });
+  }
+};

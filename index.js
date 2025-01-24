@@ -31,6 +31,8 @@ const questionnaireRoutes = require("./src/routes/questionnaireRoutes");
 const topicRoutes = require("./src/routes/topicRoutes");
 const interviewRoutes= require("./src/routes/interviewRoundRoutes");
 const addNewModuleRoutes = require("./src/routes/addNewModuleRoutes");
+// Flash Card Routes
+const aiFlashCardRoutes = require("./src/routes/aiFlashCardRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -40,6 +42,8 @@ app.use("/questionnaire", questionnaireRoutes);
 app.use("/topic", topicRoutes); 
 app.use("/interviewRound", interviewRoutes);
 app.use("/addNewModule", addNewModuleRoutes);
+// Flash Cards URI
+app.use("/flashCards", aiFlashCardRoutes);
 
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");
