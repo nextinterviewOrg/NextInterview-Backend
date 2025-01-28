@@ -68,3 +68,29 @@ exports.deleteModule = async (req, res) => {
     });
   }
 };
+// Fetch Single Module Data
+exports.getModuleDataByID = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const moduleData = await NewModule.findById(id);
+ 
+    if (!moduleData) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+ 
+    res.status(200).json({
+      success: true,
+      data: moduleData,
+    });
+  } catch (error) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch module data",
+      error: err.message,
+    });
+  }
+};
