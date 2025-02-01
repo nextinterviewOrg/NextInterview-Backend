@@ -3,10 +3,10 @@ require("dotenv").config();
 
 
 const MONGODB_URI =process.env.MONGODB_URL //development
-const MONGODB_URI_PROD = process.env.MONGODB_URL_PROD;
+const MONGODB_URI_PROD = process.env.MONGODB_URL_PROD;//production
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGODB_URI_PROD, {
+  await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       // useCreateIndex: true, // Uncomment if using older versions of Mongoose
