@@ -1,4 +1,4 @@
-const LearningPath = require("../Models");
+const LearningPath = require("../Models/learningPathModel");
 
 // Fetch Path Data by UID
 exports.getLearningPathById = async (req, res) => {
