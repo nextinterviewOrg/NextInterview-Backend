@@ -33,6 +33,11 @@ const interviewRoutes= require("./src/routes/interviewRoundRoutes");
 const addNewModuleRoutes = require("./src/routes/addNewModuleRoutes");
 // Flash Card Routes
 const aiFlashCardRoutes = require("./src/routes/aiFlashCardRoutes");
+// User Dashboard Routes
+const userDashboardRoutes = require("./src/routes/userDashboardRoutes");
+// Learning Path Routes
+const learningPathRoutes = require("./src/routes/learningPathRoutes");
+
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -44,6 +49,10 @@ app.use("/interviewRound", interviewRoutes);
 app.use("/addNewModule", addNewModuleRoutes);
 // Flash Cards URI
 app.use("/flashCards", aiFlashCardRoutes);
+// User Dashboard URI
+app.use("/userDashboard", userDashboardRoutes);
+// Learning Path URI
+app.use("/pathProgress", learningPathRoutes);
 
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");
