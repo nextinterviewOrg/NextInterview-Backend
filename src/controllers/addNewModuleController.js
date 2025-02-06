@@ -94,3 +94,29 @@ exports.getModuleDataByID = async (req, res) => {
     });
   }
 };
+
+
+// Update Single Module Data
+exports.updateModuleDataByID = async (req, res) => {
+  try {
+    const { id } = req.params;
+ 
+    const moduleData = await NewModule.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+ 
+    res.status(200).json({
+      success: true,
+      message: "Module updated successfully",
+      data: moduleData,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update Module",
+      error: err.message,
+    });
+  }
+};
