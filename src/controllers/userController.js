@@ -9,7 +9,7 @@ const Questionnaire = require("../Models/questionnaireModel");
 const connectDB = require("../config/dbConfig");
 
 const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
+  secretKey: process.env.CLERK_SECRET_KEY_NEW,
 });
 
 exports.createUser = async function (req, res) {
@@ -51,7 +51,7 @@ exports.createUser = async function (req, res) {
         user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
       });
       await user.save();
-      console.log("User saved to database",user);
+      console.log("User saved to database", user);
       // Add default public metadata
       const updatedUser = await clerkClient.users.updateUser(msg.data.id, {
         public_metadata: {
@@ -70,7 +70,7 @@ exports.createUser = async function (req, res) {
             msg.data.first_name + " " + msg.data.last_name || "Anonymous",
           user_email: msg.data.email_addresses[0].email_address,
           user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
-          user_role: msg.data.public_metadata.role||"user",
+          user_role: msg.data.public_metadata.role || "user",
         }
       );
       console.log("event  ", user);
@@ -78,7 +78,7 @@ exports.createUser = async function (req, res) {
       console.log("user deleted ", msg);
       User.findOneAndDelete({ clerkUserId: msg.data.id }).then((user) => {
         if (user) {
-          console.log("User deleted from database",user);
+          console.log("User deleted from database", user);
         }
       });
     } else {
@@ -208,7 +208,7 @@ exports.createUserProfile = async function (req, res) {
         });
         await questionnaire.save();
 
-        
+
         user.user_data_questionnaire = questionnaire._id;
       }
 
@@ -245,6 +245,7 @@ exports.getUserByClerkId = async function (req, res) {
   try {
     const { clerk_id } = req.params;
     const user = await User.findOne({ clerkUserId: clerk_id });
+    const userData = await clerkClient.users.getUser(clerk_id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -253,7 +254,83 @@ exports.getUserByClerkId = async function (req, res) {
     }
     res.status(200).json({
       success: true,
-      data: user,
+      data: { user, clerkUserData: userData },
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.getUsers = async function (req, res) {
+  try {
+    const users = await User.find();
+    const userData = await Promise.all(users.map(async (user) => {
+      const response = await clerkClient.users.getUser(user.clerkUserId);
+      return {
+        userData: user,
+        clerkUserData: response
+      }
+
+    }))
+
+    res.status(200).json({
+      success: true,
+      data: { userData },
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.lockUser = async function (req, res) {
+  try {
+    const { clerk_ids, startDate, endDate, reason, remarks } = req.body;
+    clerk_ids.forEach(async (clerk_id) => {
+      const response = await clerkClient.users.lockUser(clerk_id)
+      const userData = await clerkClient.users.getUser(clerk_id)
+      const updatedUser = await clerkClient.users.updateUser(clerk_id, {
+        private_metadata: {
+          restrictionStart: startDate,
+          restrictionEnd: endDate,
+          reason: reason,
+          remarks: remarks
+        },
+      });
+    })
+
+    res.status(200).json({
+      success: true,
+      message: "Users locked successfully",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+exports.unlocklockUser = async function (req, res) {
+  try {
+    const { clerk_ids } = req.body;
+    clerk_ids.forEach(async (clerk_id) => {
+      const response = await clerkClient.users.unlockUser(clerk_id)
+       const updatedUser = await clerkClient.users.updateUser(clerk_id, {
+        private_metadata: null,
+      });
+    })
+
+    res.status(200).json({
+      success: true,
+      message: "Users locked successfully",
     });
   } catch (err) {
     console.log(err);

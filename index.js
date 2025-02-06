@@ -6,12 +6,19 @@ const { Webhook } = require("svix");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
-app.use(cors({
-  origin: 'https://next-interview-git-develop-digi9.vercel.app', // Replace with your frontend URL
-  // methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow methods
-  // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
-}));
+// app.use(cors());
+const corsOptions = {
+  origin: ['http://localhost:5173', 'https://next-interview-git-develop-digi9.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+// app.use(cors({
+//   origin: 'http://localhost:5173/', // Replace with your frontend URL
+//   // methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow methods
+//   // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+// }));
 
 connectDB()
   .then(() => {
@@ -42,6 +49,7 @@ const aiFlashCardRoutes = require("./src/routes/aiFlashCardRoutes");
 const userDashboardRoutes = require("./src/routes/userDashboardRoutes");
 // Learning Path Routes
 const learningPathRoutes = require("./src/routes/learningPathRoutes");
+const questionBankRoutes = require("./src/routes/questionBankRoutes");
 
 const faqRoutes = require("./src/routes/faqRoutes");
 
@@ -60,6 +68,7 @@ app.use("/flashCards", aiFlashCardRoutes);
 app.use("/userDashboard", userDashboardRoutes);
 // Learning Path URI
 app.use("/pathProgress", learningPathRoutes);
+app.use("/questionBank", questionBankRoutes);
 app.use("/faq", faqRoutes);
 
 // app.listen(5000, () => {
