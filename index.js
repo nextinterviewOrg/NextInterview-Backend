@@ -6,7 +6,7 @@ const { Webhook } = require("svix");
 
 const app = express();
 app.use(express.json());
-// app.use(cors());
+app.use(cors());
 app.use(cors({
   origin: 'https://next-interview-git-develop-digi9.vercel.app', // Replace with your frontend URL
   // methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow methods
@@ -43,6 +43,8 @@ const userDashboardRoutes = require("./src/routes/userDashboardRoutes");
 // Learning Path Routes
 const learningPathRoutes = require("./src/routes/learningPathRoutes");
 
+const faqRoutes = require("./src/routes/faqRoutes");
+
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -58,6 +60,7 @@ app.use("/flashCards", aiFlashCardRoutes);
 app.use("/userDashboard", userDashboardRoutes);
 // Learning Path URI
 app.use("/pathProgress", learningPathRoutes);
+app.use("/faq", faqRoutes);
 
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");

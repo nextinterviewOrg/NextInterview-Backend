@@ -13,5 +13,6 @@ router.get("/", addNewModuleController.getModuleData);
 router.delete("/:id", addNewModuleController.deleteModule);
 // GET CALL to fetch data by ID
 router.get("/:id", addNewModuleController.getModuleDataByID);
+router.put("/:id", addNewModuleController.updateModuleDataByID);
 
 module.exports = router;
