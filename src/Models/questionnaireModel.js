@@ -80,6 +80,9 @@ const questionnnaireSchema = new mongoose.Schema({
           ref: "Topic",
         },
       ],
+      date_attended: {
+        type: Date,
+      },
     },
   ],
   data_motive_response: {

@@ -7,6 +7,11 @@ const { buffer } = require("micro");
 const { createClerkClient } = require("@clerk/backend");
 const Questionnaire = require("../Models/questionnaireModel");
 const connectDB = require("../config/dbConfig");
+const multer = require('multer');
+const path = require('path');
+// Set up multer storage
+const storage = multer.memoryStorage(); // Store the file in memory
+const upload = multer({ storage: storage });
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY_NEW,
@@ -133,7 +138,6 @@ exports.createUserProfile = async function (req, res) {
       profile_status,
       data_planned_interview_response,
     } = req.body;
-
     // Find the user by MongoDB _id
     const user = await User.findById(user_id);
     let questionnaire;
@@ -296,6 +300,20 @@ exports.lockUser = async function (req, res) {
     clerk_ids.forEach(async (clerk_id) => {
       const response = await clerkClient.users.lockUser(clerk_id)
       const userData = await clerkClient.users.getUser(clerk_id)
+      const user = await User.findOneAndUpdate(
+        { clerkUserId: clerk_id },
+        {
+          $set: {
+            user_Restriction_Data: {
+              restrictionStart: startDate,
+              restrictionEnd: endDate,
+              reason: reason,
+              remarks: remarks,
+              restrictionStatus: true,
+            }
+          },
+        }
+      )
       const updatedUser = await clerkClient.users.updateUser(clerk_id, {
         private_metadata: {
           restrictionStart: startDate,
@@ -323,7 +341,21 @@ exports.unlocklockUser = async function (req, res) {
     const { clerk_ids } = req.body;
     clerk_ids.forEach(async (clerk_id) => {
       const response = await clerkClient.users.unlockUser(clerk_id)
-       const updatedUser = await clerkClient.users.updateUser(clerk_id, {
+      const user = await User.findOneAndUpdate(
+        { clerkUserId: clerk_id },
+        {
+          $set: {
+            user_Restriction_Data: {
+              restrictionStart: null,
+              restrictionEnd: null,
+              reason: null,
+              remarks: null,
+              restrictionStatus: false,
+            }
+          },
+        }
+      )
+      const updatedUser = await clerkClient.users.updateUser(clerk_id, {
         private_metadata: null,
       });
     })
@@ -336,6 +368,147 @@ exports.unlocklockUser = async function (req, res) {
     console.log(err);
     res.status(400).json({
       success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.resetPassword = async function (req, res) {
+  try {
+    const { clerk_id, oldPassword, newPassword } = req.body;
+    const responseOldPassword = await clerkClient.users.verifyPassword({
+      userId: clerk_id,
+      password: oldPassword,
+    })
+    const responseNewPassword = await clerkClient.users.updateUser(clerk_id, {
+      password: newPassword,
+    });
+    // console.log("responseNewPassword", responseNewPassword);
+
+    // const response = await clerkClient.users.updateUser(clerk_id, {
+    //   password: password,
+    // });
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (err) {
+    console.log("heheheh", err);
+    if (err.errors[0].code === "incorrect_password") {
+      return res.status(400).json({
+        success: false,
+        message: "Old password is incorrect",
+      });
+    }
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { clerk_id, user_name, user_profile_pic, user_Phone_number, user_email } = req.body;
+    console.log("req.body", req.body);
+
+    if (req.file) {
+
+      const file = req.file;
+      // Extract file data
+      const { mimetype, originalname, buffer } = req.file;
+
+      // Validate file type
+      const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/gif']; // Add more if needed
+      if (!allowedMimeTypes.includes(mimetype)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid file type. Only image files are allowed.',
+        });
+      }
+
+      console.log(`File received: ${originalname}, Type: ${mimetype}`);
+
+      // Create the params object to send to Clerk API
+      const fileBits = [file.buffer];
+      const fileName = file.originalname;
+      const fileType = file.mimetype;
+      const fileObject = new File(fileBits, fileName, { type: fileType });
+      const params = {
+        file: fileObject,
+      };
+      console.log("params", params);
+
+      // Call Clerk API to update user profile image
+      const response = await clerkClient.users.updateUserProfileImage(clerk_id, params);
+    }
+
+    const responseNewPassword = await clerkClient.users.updateUser(clerk_id, {
+      firstName: user_name,
+      phoneNumber: user_Phone_number,
+      emailAddress: user_email,
+    });
+
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: 'User profile updated successfully',
+      data: responseNewPassword
+    });
+  } catch (err) {
+    console.log("Error updating user:", err);
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+exports.getUserQuestionariesByUserId= async(req,res)=>{
+  try {
+    const {id}=req.params;
+    const user = await Questionnaire.findOne({ user_id: id }).populate("user_id  data_past_interview_response.company_Name data_past_interview_response.designation data_past_interview_response.topics");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      data:  user ,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+}
+
+
+exports.addPastInterview = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { date_attended,company_Name, designation, topics,what_went_well,what_went_bad } = req.body;
+    const user = await Questionnaire.findOne({ user_id: user_id });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    user.data_past_interview_response.push({date_attended, company_Name, designation, topics,what_went_well,what_went_bad });
+    await user.save();
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false, 
       message: err.message,
     });
   }

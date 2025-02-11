@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 // app.use(cors());
 const corsOptions = {
-  origin: ['http://localhost:5173', 'https://next-interview-git-develop-digi9.vercel.app'],
+  origin: ['https://next-interview-git-develop-digi9.vercel.app','http://localhost:5173', ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
@@ -52,7 +52,8 @@ const learningPathRoutes = require("./src/routes/learningPathRoutes");
 const questionBankRoutes = require("./src/routes/questionBankRoutes");
 
 const faqRoutes = require("./src/routes/faqRoutes");
-
+const cornRoutes = require("./src/routes/cornRoutes");
+const uploadRoutes = require("./src/routes/uploadRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -70,7 +71,8 @@ app.use("/userDashboard", userDashboardRoutes);
 app.use("/pathProgress", learningPathRoutes);
 app.use("/questionBank", questionBankRoutes);
 app.use("/faq", faqRoutes);
-
+app.use("/corn",cornRoutes);
+app.use("/upload", uploadRoutes);
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");
 // });

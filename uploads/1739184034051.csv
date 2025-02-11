@@ -1,0 +1,6 @@
+﻿sno,topic_name,level,type,reference,question,answer,mcq_question,option_1,option_2,option_3,option_4,time_duration
+1,Machine Learning,Easy,code,Google,Question One,Answer One,MCQ Question,A,B,C,D,30
+2,Machine Learning,Easy,code,Amazon,Question One,Answer One,MCQ Question,A,B,,,40
+3,Machine Learning,Easy,mcq,,,,MCQ Question,A,B,C,,50
+4,Machine Learning,Easy,code,Facebook,Question One,Answer One,MCQ Question,A,B,C,,60
+5,Machine Learning,Easy,mcq,,,,MCQ Question,A,B,,D,70
