@@ -59,6 +59,8 @@ const learningPathRoutes = require("./src/routes/learningPathRoutes");
 const questionBankRoutes = require("./src/routes/questionBankRoutes");
 
 const faqRoutes = require("./src/routes/faqRoutes");
+const supportQueryRoutes = require("./src/routes/supportQueryRoutes");
+
 const cornRoutes = require("./src/routes/cornRoutes");
 const uploadRoutes = require("./src/routes/uploadRoutes");
 
@@ -78,6 +80,8 @@ app.use("/userDashboard", userDashboardRoutes);
 app.use("/pathProgress", learningPathRoutes);
 app.use("/questionBank", questionBankRoutes);
 app.use("/faq", faqRoutes);
+app.use("/supportQuery", supportQueryRoutes);
+
 app.use("/corn",cornRoutes);
 app.use("/upload", uploadRoutes);
 // app.listen(5000, () => {
