@@ -7,10 +7,17 @@ const { Webhook } = require("svix");
 const app = express();
 app.use(express.json());
 // app.use(cors());
+// const corsOptions = {
+//   origin: ['https://next-interview-git-develop-digi9.vercel.app', 'http://localhost:5173'], // Add more origins if needed
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true, // If your frontend needs to send cookies or authentication data
+// };
 const corsOptions = {
-  origin: ['http://localhost:5173', 'https://next-interview-git-develop-digi9.vercel.app'],
+  origin: '*', // Add more origins if needed
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // If your frontend needs to send cookies or authentication data
 };
 
 app.use(cors(corsOptions));
@@ -54,6 +61,8 @@ const questionBankRoutes = require("./src/routes/questionBankRoutes");
 const faqRoutes = require("./src/routes/faqRoutes");
 const supportQueryRoutes = require("./src/routes/supportQueryRoutes");
 
+const cornRoutes = require("./src/routes/cornRoutes");
+const uploadRoutes = require("./src/routes/uploadRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -73,6 +82,8 @@ app.use("/questionBank", questionBankRoutes);
 app.use("/faq", faqRoutes);
 app.use("/supportQuery", supportQueryRoutes);
 
+app.use("/corn",cornRoutes);
+app.use("/upload", uploadRoutes);
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");
 // });

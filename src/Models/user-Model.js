@@ -34,7 +34,25 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  
+  user_Restriction_Data: {
+    restrictionStatus: {
+      type: Boolean,
+      default: false
+    },
+    restrictionStart: {
+      type: Date,
+    },
+    restrictionEnd: {
+      type: Date,
+    },
+    reason: {
+      type: String,
+    },
+    remarks: {
+      type: String,
+    }
+  }
+
 }, { timestamps: true });
 
 
