@@ -52,6 +52,7 @@ const learningPathRoutes = require("./src/routes/learningPathRoutes");
 const questionBankRoutes = require("./src/routes/questionBankRoutes");
 
 const faqRoutes = require("./src/routes/faqRoutes");
+const supportQueryRoutes = require("./src/routes/supportQueryRoutes");
 
 
 app.use("/users", userRoutes);
@@ -70,6 +71,7 @@ app.use("/userDashboard", userDashboardRoutes);
 app.use("/pathProgress", learningPathRoutes);
 app.use("/questionBank", questionBankRoutes);
 app.use("/faq", faqRoutes);
+app.use("/supportQuery", supportQueryRoutes);
 
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");
