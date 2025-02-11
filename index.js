@@ -8,9 +8,10 @@ const app = express();
 app.use(express.json());
 // app.use(cors());
 const corsOptions = {
-  origin: ['https://next-interview-git-develop-digi9.vercel.app','http://localhost:5173', ],
+  origin: ['https://next-interview-git-develop-digi9.vercel.app', 'http://localhost:5173'], // Add more origins if needed
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // If your frontend needs to send cookies or authentication data
 };
 
 app.use(cors(corsOptions));
