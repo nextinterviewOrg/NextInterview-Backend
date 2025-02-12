@@ -14,8 +14,6 @@
     ],
     "headers": [
       {
-        "src": "/(.*)",
-        "dest": "index.js",
         "headers": [
           {
             "key": "Access-Control-Allow-Origin",
