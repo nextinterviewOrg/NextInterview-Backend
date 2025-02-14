@@ -178,7 +178,12 @@ exports.createUserProfile = async function (req, res) {
         data_planned_interview_response || QuestionnaireData.data_planned_interview_response;
       await QuestionnaireData.save();
       // Update user fields only if they are provided
-      if (user_name) user.user_name = user_name;
+      if (user_name){
+         user.user_name = user_name;
+         const updatedUser = await clerkClient.users.updateUser(user.clerkUserId, {
+          first_name:user_name,
+        });
+      }
       if (profile_pic) user.user_profile_pic = profile_pic;
       if (user_linkedin_profile_link) {
         user.user_linkedin_profile_link = user_linkedin_profile_link;
@@ -218,7 +223,12 @@ exports.createUserProfile = async function (req, res) {
       }
 
       // Update user fields only if they are provided
-      if (user_name) user.user_name = user_name;
+      if (user_name){
+         user.user_name = user_name;
+         const updatedUser = await clerkClient.users.updateUser(user.clerkUserId, {
+          first_name:user_name,
+         });
+        }
       if (profile_pic) user.user_profile_pic = profile_pic;
       if (user_linkedin_profile_link) {
         user.user_linkedin_profile_link = user_linkedin_profile_link;
