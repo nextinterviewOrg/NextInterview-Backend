@@ -26,7 +26,7 @@ exports.createUser = async function (req, res) {
     const payload = JSON.stringify(req.body) || req.body;
     // const payload =req.body;
     console.log("payload", payload);
-    // console.log("secret", secret);
+    console.log("secret", secret);
     const headers = req.headers;
 
     const wh = new Webhook(secret);
