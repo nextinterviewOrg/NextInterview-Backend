@@ -73,7 +73,7 @@ exports.createUser = async function (req, res) {
         { clerkUserId: msg.data.id },
         {
           user_name:
-            msg.data.first_name + " " + msg.data.last_name || "Anonymous",
+            msg.data.first_name  || "Anonymous",
           user_email: msg.data.email_addresses[0].email_address,
           user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
           user_role: msg.data.public_metadata.role || "user",
@@ -521,6 +521,49 @@ exports.addPastInterview = async (req, res) => {
     res.status(500).json({
       success: false, 
       message: err.message,
+    });
+  }
+};
+
+
+
+// Function to get user details by session ID
+exports.getUserIdBySession = async (req, res) => {
+  const { sessionId } = req.body;  // Get the session ID from request body
+  console.log("Received sessionId:", sessionId);
+
+  if (!sessionId) {
+    return res.status(400).json({ success: false, message: "Session ID is required" });
+  }
+
+  try {
+    // Fetch the session using the session ID
+    const session = await clerkClient.sessions.getSession(sessionId);
+    console.log("Session retrieved:", session);
+
+    // Retrieve the userId from the session
+    const userId = session.userId;
+
+    // Return the userId in the response
+    return res.status(200).json({
+      success: true,
+      message: "User ID retrieved successfully",
+      userId: userId
+    });
+
+  } catch (error) {
+    // Log the error for debugging
+    console.error("Error fetching user details by session ID:", error);
+
+    // Check if the error is a Clerk API error and log its details
+    if (error.response) {
+      console.error("Clerk API Error:", error.response.data);
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching user details",
+      error: error.message,  // Include the error message for debugging
     });
   }
 };
