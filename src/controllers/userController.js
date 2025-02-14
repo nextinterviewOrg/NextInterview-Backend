@@ -41,18 +41,18 @@ exports.createUser = async function (req, res) {
       const userExists = await User.findOne({
         user_email: msg.data.email_addresses[0].email_address,
       });
-      // if (userExists) {
-      //   console.log("User already exists in database");
-      //   return res.status(200).json({
-      //     success: true,
-      //     message: "User already exists in database",
-      //   });
-      // }
+      if (userExists) {
+        console.log("User already exists in database");
+        return res.status(200).json({
+          success: true,
+          message: "User already exists in database",
+        });
+      }
 
       const user = new User({
         clerkUserId: msg.data.id,
         user_name:
-          msg.data.first_name + " " + msg.data.last_name || "Anonymous",
+          msg.data.first_name  || "Anonymous",
         user_email: msg.data.email_addresses[0].email_address,
         user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
       });
