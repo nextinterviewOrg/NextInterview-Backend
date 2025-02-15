@@ -1,10 +1,10 @@
-import axios from "axios";
+const axios = require("axios");
 
 const API_KEY =process.env.GPT_API_KEY
  
 const API_URL = "https://api.openai.com/v1/chat/completions";
 
-export const getChatGPTResponse = async (message) => {
+exports.getChatGPTResponse = async (message) => {
   try {
     const response = await axios.post(
       API_URL,

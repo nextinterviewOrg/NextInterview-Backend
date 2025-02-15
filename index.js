@@ -63,6 +63,8 @@ const supportQueryRoutes = require("./src/routes/supportQueryRoutes");
 
 const cornRoutes = require("./src/routes/cornRoutes");
 const uploadRoutes = require("./src/routes/uploadRoutes");
+// ChatGPT API Route
+const chatGptRoutes = require("./src/routes/chatGptRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -84,6 +86,8 @@ app.use("/supportQuery", supportQueryRoutes);
 
 app.use("/corn",cornRoutes);
 app.use("/upload", uploadRoutes);
+// ChatGPT URI
+app.use("/smart-response", chatGptRoutes);
 // app.listen(5000, () => {
 //   console.log("Server started on port 5000");
 // });
