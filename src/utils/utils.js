@@ -43,7 +43,7 @@ async function processChallengesCSV(filePath, DataModel) {
   });
 }
 
-async function processQuestionBankCSV(filePath, DataModel) {
+async function processQuestionBankCSV(filePath, DataModel,mc,tc,sc) {
   const records = [];
 
   return new Promise((resolve, reject) => {
@@ -51,19 +51,17 @@ async function processQuestionBankCSV(filePath, DataModel) {
       .pipe(csvParser())
       .on("data", (row) => {
         const data = {
-          sno: row.sno,
-          topic_name: row.topic_name,
-          level: row.level,
-          type: row.type,
-          reference: row.reference,
+          module_code: mc,
+          topic_code:tc,
+          subtopic_code: sc,
+          question_type:row.question_type,
           question: row.question,
           answer: row.answer,
-          mcq_question: row.mcq_question,
-          option_1: row.option_1,
-          option_2: row.option_2,
-          option_3: row.option_3,
-          option_4: row.option_4,
-          time_duration: row.time_duration,
+          option_a: row.option_a,
+          option_b: row.option_b,
+          option_c: row.option_c,
+          option_d: row.option_d,
+          correct_option: row.correct_option,
         };
         records.push(data);
       })
@@ -85,34 +83,35 @@ async function processQuestionBankCSV(filePath, DataModel) {
   });
 }
 
-async function processSkillAssessmentCSV(filePath, DataModel) {
+async function processSkillAssessmentCSV(filePath, DataModel,mc,tc,sc) {
   const records = [];
+  console.log("mc,tc,sc",mc,tc,sc)
 
   return new Promise((resolve, reject) => {
     fs.createReadStream(filePath)
       .pipe(csvParser())
       .on("data", (row) => {
         const data = {
-          sno: row.sno,
-          topic_name: row.topic_name,
-          level: row.level,
-          type: row.type,
-          reference: row.reference,
+          module_code: mc,
+          topic_code:tc,
+          subtopic_code: sc,
+          question_type:row.question_type,
           question: row.question,
           answer: row.answer,
-          mcq_question: row.mcq_question,
-          option_1: row.option_1,
-          option_2: row.option_2,
-          option_3: row.option_3,
-          option_4: row.option_4,
-          time_duration: row.time_duration,
+          option_a: row.option_a,
+          option_b: row.option_b,
+          option_c: row.option_c,
+          option_d: row.option_d,
+          correct_option: row.correct_option,
         };
         records.push(data);
       })
       .on("end", () => {
+        console.log("records",records)
         DataModel.insertMany(records)
-          .then(() => {
-            console.log("CSV data inserted into MongoDB");
+          .then((result) => {
+            console.log("CSV data inserted into MongoDB-SkillAssessment");
+
             resolve();
           })
           .catch((err) => {
@@ -127,7 +126,7 @@ async function processSkillAssessmentCSV(filePath, DataModel) {
   });
 }
 
-async function processTIYCSV(filePath, DataModel) {
+async function processTIYCSV(filePath, DataModel,mc,tc,sc) {
   const records = [];
 
   return new Promise((resolve, reject) => {
@@ -135,19 +134,17 @@ async function processTIYCSV(filePath, DataModel) {
       .pipe(csvParser())
       .on("data", (row) => {
         const data = {
-          sno: row.sno,
-          topic_name: row.topic_name,
-          level: row.level,
-          type: row.type,
-          reference: row.reference,
+          module_code: mc,
+          topic_code:tc,
+          subtopic_code: sc,
+          question_type:row.question_type,
           question: row.question,
           answer: row.answer,
-          mcq_question: row.mcq_question,
-          option_1: row.option_1,
-          option_2: row.option_2,
-          option_3: row.option_3,
-          option_4: row.option_4,
-          time_duration: row.time_duration,
+          option_a: row.option_a,
+          option_b: row.option_b,
+          option_c: row.option_c,
+          option_d: row.option_d,
+          correct_option: row.correct_option,
         };
         records.push(data);
       })

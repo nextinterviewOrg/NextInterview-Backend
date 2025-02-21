@@ -14,5 +14,8 @@ router.delete("/:id", addNewModuleController.deleteModule);
 // GET CALL to fetch data by ID
 router.get("/:id", addNewModuleController.getModuleDataByID);
 router.put("/:id", addNewModuleController.updateModuleDataByID);
-
+router.get("/get/moduleCode",addNewModuleController.getAllModuleCodes)
+router.get("/get/module/topic/:moduleCode",addNewModuleController.getTopicCodesByModuleCode)
+router.get('/get/module/topic/subtopic/:moduleCode/:topicCode',addNewModuleController.getSubtopicCodesByModuleAndTopicCode)
+router.delete("/softDelete/:id",addNewModuleController.softDeleteModule)
 module.exports = router;

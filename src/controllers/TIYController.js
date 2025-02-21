@@ -1,16 +1,12 @@
-const QuestionBank = require("../Models/questionBankModel");
+const TIYModel = require("../Models/TIYSchemaModel");   
 
-// Creation of New Modules
-
-
-// Fetch Module Data
-exports.getQuestionBank = async (req, res) => {
+exports.getTIYS = async (req, res) => {
   try {
     // Get query parameters from the request
     const { module_code, topic_code, subtopic_code, question_type } = req.query;
 
     // Create a filter object to build the query based on the optional parameters
-    const filter = {};
+    const filter = {isDeleted: false};
 
     if (module_code) {
       filter.module_code = module_code;
@@ -26,17 +22,17 @@ exports.getQuestionBank = async (req, res) => {
     }
 
     // Fetch the skill assessments using the dynamic filter
-    const questionbanks = await QuestionBank.find(filter);
+    const tiys = await TIYModel.find(filter);
 
     // Check if any skill assessments are found
-    if (!questionbanks.length) {
-      return res.status(404).json({ success: false, message: 'No Qusetion Banks found' });
+    if (!tiys.length) {
+      return res.status(404).json({ success: false, message: 'No try it yourself found' });
     }
 
     // Return the found skill assessments
     return res.status(200).json({
       success: true,
-      data: questionbanks,
+      data: tiys,
     });
 
   } catch (error) {
@@ -44,56 +40,56 @@ exports.getQuestionBank = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching Question Banks',
+      message: 'Error fetching try it yourself',
       error: error.message,
     });
   }
 };
 
-exports.getQuestionBankByID = async (req, res) => {
+exports.getTIYByID = async (req, res) => {  
   try {
-    const { id } = req.params;
-    const questionbank = await QuestionBank.findById(id);
-    if (!questionbank) {
+    const { id } = req.params;  
+    const tiy = await TIYModel.findById(id);
+    if (!tiy) {
       return res.status(404).json({
         success: false,
-        message: 'Question Bank not found',
+        message: 'Try it yourself not found',
       });
     }
     return res.status(200).json({
       success: true,
-      data: questionbank,
+      data: tiy,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching Question Bank',
+      message: 'Error fetching try it yourself question',
       error: error.message,
     });
   }
 };
 
-exports.softDeleteQuestionBank = async (req, res) => {
+exports.softDeleteTIY = async (req, res) => {
   try {
     const { id } = req.params;
-    const questionbank = await QuestionBank.findOneAndUpdate({ _id: id }, { $set: { isDeleted: true } }, { new: true });
-    if (!questionbank) {
+    const tiy = await TIYModel.findOneAndUpdate({ _id: id }, { $set: { isDeleted: true } }, { new: true });
+    if (!tiy) {
       return res.status(404).json({
         success: false,
-        message: 'Question Bank not found',
+        message: 'Try it yourself not found',
       });
     }
     return res.status(200).json({
       success: true,
-      message: 'Question Bank deleted successfully',
-      questionbank: questionbank
+      message: 'Try it yourself deleted successfully',
+      tiy: tiy
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Error deleting Question Bank',
+      message: 'Error deleting try it yourself',
       error: error.message,
     });
   }

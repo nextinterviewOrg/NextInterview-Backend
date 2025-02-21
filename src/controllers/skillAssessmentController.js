@@ -1,16 +1,13 @@
-const QuestionBank = require("../Models/questionBankModel");
+const SkillAssess = require('../Models/skillAssessmentModel');  // Import the SkillAssess model
 
-// Creation of New Modules
-
-
-// Fetch Module Data
-exports.getQuestionBank = async (req, res) => {
+// Controller to fetch skill assessments based on optional filters
+exports.getSkillAssessments = async (req, res) => {
   try {
     // Get query parameters from the request
     const { module_code, topic_code, subtopic_code, question_type } = req.query;
 
     // Create a filter object to build the query based on the optional parameters
-    const filter = {};
+    const filter = {isDeleted: false};
 
     if (module_code) {
       filter.module_code = module_code;
@@ -26,17 +23,17 @@ exports.getQuestionBank = async (req, res) => {
     }
 
     // Fetch the skill assessments using the dynamic filter
-    const questionbanks = await QuestionBank.find(filter);
+    const skillAssessments = await SkillAssess.find(filter);
 
     // Check if any skill assessments are found
-    if (!questionbanks.length) {
-      return res.status(404).json({ success: false, message: 'No Qusetion Banks found' });
+    if (!skillAssessments.length) {
+      return res.status(404).json({ success: false, message: 'No skill assessments found' });
     }
 
     // Return the found skill assessments
     return res.status(200).json({
       success: true,
-      data: questionbanks,
+      data: skillAssessments,
     });
 
   } catch (error) {
@@ -44,57 +41,57 @@ exports.getQuestionBank = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching Question Banks',
+      message: 'Error fetching skill assessments',
       error: error.message,
     });
   }
 };
 
-exports.getQuestionBankByID = async (req, res) => {
+exports.getSkillAssessmentById = async (req, res) => {
   try {
     const { id } = req.params;
-    const questionbank = await QuestionBank.findById(id);
-    if (!questionbank) {
+    const skillAssessment = await SkillAssess.findById(id);
+    if (!skillAssessment) {
       return res.status(404).json({
         success: false,
-        message: 'Question Bank not found',
+        message: 'Skill assessment not found',
       });
     }
     return res.status(200).json({
       success: true,
-      data: questionbank,
+      data: skillAssessment,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Error fetching Question Bank',
+      message: 'Error fetching skill assessment',
       error: error.message,
     });
   }
 };
 
-exports.softDeleteQuestionBank = async (req, res) => {
+exports.softDeleteSkillAssessment = async (req, res) => {
   try {
     const { id } = req.params;
-    const questionbank = await QuestionBank.findOneAndUpdate({ _id: id }, { $set: { isDeleted: true } }, { new: true });
-    if (!questionbank) {
+    const skillAssessment = await SkillAssess.findOneAndUpdate({ _id: id }, { $set: { isDeleted: true } }, { new: true });
+    if (!skillAssessment) {
       return res.status(404).json({
         success: false,
-        message: 'Question Bank not found',
+        message: 'Skill assessment not found',
       });
     }
     return res.status(200).json({
       success: true,
-      message: 'Question Bank deleted successfully',
-      questionbank: questionbank
+      message: 'Skill assessment deleted successfully',
+      skillAssessment: skillAssessment
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Error deleting Question Bank',
-      error: error.message,
+      message: 'Error deleting skill assessment',
+      error: error.message,  
     });
   }
 };
