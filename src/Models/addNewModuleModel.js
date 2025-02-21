@@ -8,6 +8,11 @@ const newModuleSchema = new mongoose.Schema(
     approxTimeTaken: String,
     interviewSampleURL: String,
     courseOverview: String,
+    module_code: String,
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
     userLearntData: [
       {
         learntData: String,
@@ -17,8 +22,10 @@ const newModuleSchema = new mongoose.Schema(
       {
         topicName: String,
         skillAssessmentQuestionsURL: String,
+        topic_code: String,
         subtopicData: [
           {
+            subtopic_code: String,
             subtopicName: String,
             subtopicContent: String,
             subtopicSummary: String,

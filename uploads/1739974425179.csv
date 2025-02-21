@@ -1,0 +1,5 @@
+module_code,topic_code,subtopic_code,question_type,question,answer,option_a,option_b,option_c,option_d,correct_option
+MC000001,TC010001,ST010101,MCQ,2+2=?,,1,2,3,4,option_d
+,,,Single-line,in which country delhi is located,India,,,,,
+,,,Multi-line,explain energry,"Energy is a fundamental concept in physics that represents the capacity to do work. It can exist in different forms, and it is conserved in a closed system, meaning energy cannot be created or destroyed, only transformed from one form to another.",,,,,
+,,,Approach,We are given an array of integers nums and an integer target. Our goal is to return the indices of the two numbers such that they add up to target.,,,,,,
