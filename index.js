@@ -41,7 +41,7 @@ connectDB()
     console.error("MongoDB connection error:", err);
     process.exit(1); // Exit process with failure
   });
-
+const notificationRoutes = require("./src/routes/notificationRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const jobResponseRoutes = require("./src/routes/jobResponseRoutes");
 const designationRoutes = require("./src/routes/designationRoutes");
@@ -98,3 +98,4 @@ app.use("/judge0", judge0Routes);
 //   console.log("Server started on port 5000");
 // });
 
+app.use("/notification", notificationRoutes);
