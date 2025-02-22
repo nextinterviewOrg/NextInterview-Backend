@@ -7,7 +7,7 @@ const QuestionBank = require("../Models/questionBankModel");
 exports.getQuestionBank = async (req, res) => {
   try {
     // Get query parameters from the request
-    const { module_code, topic_code, subtopic_code, question_type } = req.query;
+    const { module_code, topic_code, subtopic_code, question_type, level } = req.query;
 
     // Create a filter object to build the query based on the optional parameters
     const filter = {};
@@ -23,6 +23,9 @@ exports.getQuestionBank = async (req, res) => {
     }
     if (question_type) {
       filter.question_type = question_type;
+    }
+    if(level){
+      filter.level = level;
     }
 
     // Fetch the skill assessments using the dynamic filter

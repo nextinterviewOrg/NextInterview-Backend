@@ -5,10 +5,16 @@ const TIYSchema = new mongoose.Schema({
     topic_code: String,
     subtopic_code: String,
     question_type: {
-      type: String,
-      required: true,
-      enum: ['mcq', 'single-line', 'multi-line', 'approach',],  // Enum for unit
-      message: 'question type must be one of the following: mcq, single-line, multi-line, approach'
+        type: String,
+        required: true,
+        enum: ['mcq', 'single-line', 'multi-line', 'approach',],  // Enum for unit
+        message: 'question type must be one of the following: mcq, single-line, multi-line, approach'
+    },
+    level: {
+        type: String,
+        required: true,
+        enum: ['easy', 'medium', 'hard',],  // Enum for unit
+        message: 'level must be one of the following: easy, medium, hard'
     },
     question: String,
     answer: String,
@@ -18,9 +24,9 @@ const TIYSchema = new mongoose.Schema({
     option_d: String,
     correct_option: String,
     isDeleted: {
-      type: Boolean,
-      default: false,
+        type: Boolean,
+        default: false,
     }
-  });
+});
 
-  module.exports = mongoose.model("TIY", TIYSchema);
+module.exports = mongoose.model("TIY", TIYSchema);
