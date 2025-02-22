@@ -10,6 +10,12 @@ const SkillAssessSchema = new mongoose.Schema({
     enum: ['mcq', 'single-line', 'multi-line', 'approach', ],  // Enum for unit
     message: 'question type must be one of the following: mcq, single-line, multi-line, approach'
   },
+  level:{
+    type: String,
+    required: true,
+    enum: ['easy', 'medium', 'hard',],  // Enum for unit
+    message: 'level must be one of the following: easy, medium, hard'
+  },
   question: String,
   answer: String,
   option_a: String,
