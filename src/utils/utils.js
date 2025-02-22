@@ -45,6 +45,7 @@ async function processChallengesCSV(filePath, DataModel) {
 
 async function processQuestionBankCSV(filePath, DataModel,mc,tc,sc) {
   const records = [];
+  console.log("mc,tc,sc",mc,tc,sc)
 
   return new Promise((resolve, reject) => {
     fs.createReadStream(filePath)
@@ -65,6 +66,7 @@ async function processQuestionBankCSV(filePath, DataModel,mc,tc,sc) {
           correct_option: row.correct_option,
         };
         records.push(data);
+        console.log(data)
       })
       .on("end", () => {
         DataModel.insertMany(records)
@@ -88,6 +90,7 @@ async function processSkillAssessmentCSV(filePath, DataModel,mc,tc,sc) {
   const records = [];
   console.log("mc,tc,sc",mc,tc,sc)
 
+
   return new Promise((resolve, reject) => {
     fs.createReadStream(filePath)
       .pipe(csvParser())
@@ -107,6 +110,7 @@ async function processSkillAssessmentCSV(filePath, DataModel,mc,tc,sc) {
           correct_option: row.correct_option,
         };
         records.push(data);
+        console.log("data",data)
       })
       .on("end", () => {
         console.log("records",records)
