@@ -25,7 +25,7 @@ const router = express.Router();
 //   },
 // });
 
-// const upload = multer({ storage });
+const upload = multer({ storage });
 
 
 
@@ -37,7 +37,7 @@ const router = express.Router();
 
 
 
-router.post("/upload-csv-challenges", upload.single("csv"), (req, res) => {
+router.post("/upload-csv-challenges", (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
@@ -52,7 +52,7 @@ router.post("/upload-csv-challenges", upload.single("csv"), (req, res) => {
     });
 });
 
-router.post("/upload-csv-tiy", upload.single("csv"), (req, res) => {
+router.post("/upload-csv-tiy",  (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
@@ -67,7 +67,7 @@ router.post("/upload-csv-tiy", upload.single("csv"), (req, res) => {
     });
 });
 
-router.post("/upload-csv-skillassessment", upload.single("csv"), (req, res) => {
+router.post("/upload-csv-skillassessment", (req, res) => {
   console.log("req.file", req.body.mc);
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
@@ -83,7 +83,7 @@ router.post("/upload-csv-skillassessment", upload.single("csv"), (req, res) => {
     });
 });
 
-router.post("/upload-csv-questionbank", upload.single("csv"), (req, res) => {
+router.post("/upload-csv-questionbank", (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
