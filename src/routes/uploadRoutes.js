@@ -6,6 +6,7 @@ const SkillAssessmentModel = require("../Models/skillAssessmentModel");
 const QuestionBankModel = require("../Models/questionBankModel");
 const TIYModel = require("../Models//TIYSchemaModel");
 const mongoose = require("mongoose");
+const ChallengesModel = require("../Models/challengesModel");
 const {
   processChallengesCSV,
   processQuestionBankCSV,
@@ -29,23 +30,9 @@ const router = express.Router();
 
 
 // Challenges Schema
-const ChallengesSchema = new mongoose.Schema({
-  sno: String,
-  topic_name: String,
-  level: String,
-  type: String,
-  reference: String,
-  question: String,
-  answer: String,
-  mcq_question: String,
-  option_1: String,
-  option_2: String,
-  option_3: String,
-  option_4: String,
-  time_duration: String,
-});
 
-const ChallengesModel = mongoose.model("Challenges", ChallengesSchema);
+
+
 
 
 
