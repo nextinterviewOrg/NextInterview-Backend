@@ -69,6 +69,7 @@ const chatGptRoutes = require("./src/routes/chatGptRoutes");
 const tiyRoutes = require("./src/routes/tiyRoutes");
 const judge0Routes = require("./src/routes/judge0Routes");
 const userProgressRoutes = require("./src/routes/userProgressRoutes");
+const moduleProgressRoutes = require("./src/routes/moduleProgressRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -101,3 +102,4 @@ app.use("/judge0", judge0Routes);
 
 app.use("/notification", notificationRoutes);
 app.use("/userProgress", userProgressRoutes);
+app.use("/moduleProgress", moduleProgressRoutes);
