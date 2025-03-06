@@ -70,6 +70,9 @@ const tiyRoutes = require("./src/routes/tiyRoutes");
 const judge0Routes = require("./src/routes/judge0Routes");
 const userProgressRoutes = require("./src/routes/userProgressRoutes");
 const moduleProgressRoutes = require("./src/routes/moduleProgressRoutes");
+const aiMockInterviewRoutes = require("./src/routes/aiMockInterviewRoutes");
+const aiAssistantRoutes = require("./src/routes/aiAssistantRoutes");
+
 const reminderRoutes = require("./src/routes/reminderRoute");
 
 app.use("/users", userRoutes);
@@ -104,5 +107,7 @@ app.use("/judge0", judge0Routes);
 app.use("/notification", notificationRoutes);
 app.use("/userProgress", userProgressRoutes);
 app.use("/moduleProgress", moduleProgressRoutes);
+app.use("/aiMockInterview", aiMockInterviewRoutes);
+app.use("/aiAssistant", aiAssistantRoutes);
 
 app.use("/reminder", reminderRoutes);
