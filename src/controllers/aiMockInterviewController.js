@@ -24,7 +24,7 @@ exports.createAiAssistant = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -47,7 +47,7 @@ exports.getAiAssistants = async (req, res) => {
             "https://api.openai.com/v1/assistants",
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -67,7 +67,7 @@ exports.getAiAssistantsById = async (req, res) => {
             `https://api.openai.com/v1/assistants/${id}`,
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -98,7 +98,7 @@ exports.modifyAiAssistant = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -119,7 +119,7 @@ exports.deleteAiAssistant = async (req, res) => {
             `https://api.openai.com/v1/assistants/${id}`,
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -148,7 +148,7 @@ exports.createThread = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -177,7 +177,7 @@ exports.createAndRunThread = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -199,7 +199,7 @@ exports.createMessage = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -222,7 +222,7 @@ exports.runThread = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -242,7 +242,7 @@ exports.checkStatus = async (req, res) => {
             `https://api.openai.com/v1/threads/${req.body.thread_id}/runs/${req.body.run_id}`,
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -254,7 +254,7 @@ exports.checkStatus = async (req, res) => {
             // When the run is completed, get the messages
             const messagesResponse = await axios.get(`https://api.openai.com/v1/threads/${req.body.thread_id}/messages`, {
                 headers: {
-                    'Authorization': `Bearer ${API_KEY}`,
+                    'Authorization': `Bearer ${process.env.GPT_API_KEY_AI}`,
                     'Content-Type': 'application/json',
                     'OpenAI-Beta': 'assistants=v2'
                 }
@@ -334,7 +334,7 @@ exports.textToSpeech = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     'Content-Type': 'application/json',
                 },
                 responseType: 'arraybuffer',  // Use arraybuffer to handle binary data
@@ -371,7 +371,7 @@ exports.speechToText = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     'Content-Type': 'multipart/form-data',
                 },
             }
@@ -395,7 +395,7 @@ exports.endInterviewandStoreInteractions = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -409,7 +409,7 @@ exports.endInterviewandStoreInteractions = async (req, res) => {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${API_KEY}`,
+                    Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     "Content-Type": "application/json",
                     "OpenAI-Beta": "assistants=v2"
                 },
@@ -422,7 +422,7 @@ exports.endInterviewandStoreInteractions = async (req, res) => {
                     `https://api.openai.com/v1/threads/${req.body.thread_id}/runs/${responseTwo.data.id}`,
                     {
                         headers: {
-                            Authorization: `Bearer ${API_KEY}`,
+                            Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                             "Content-Type": "application/json",
                             "OpenAI-Beta": "assistants=v2"
                         },
@@ -436,7 +436,7 @@ exports.endInterviewandStoreInteractions = async (req, res) => {
                     // When the run is completed, get the messages
                     const messagesResponse = await axios.get(`https://api.openai.com/v1/threads/${req.body.thread_id}/messages`, {
                         headers: {
-                            'Authorization': `Bearer ${API_KEY}`,
+                            'Authorization': `Bearer ${process.env.GPT_API_KEY_AI}`,
                             'Content-Type': 'application/json',
                             'OpenAI-Beta': 'assistants=v2'
                         }
