@@ -135,7 +135,7 @@ exports.deleteAiAssistant = async (req, res) => {
 }
 exports.createThread = async (req, res) => {
     try {
-
+  console.log("api Key", process.env.GPT_API_KEY_AI);
         const response = await axios.post(
             `https://api.openai.com/v1/threads`,
             {
