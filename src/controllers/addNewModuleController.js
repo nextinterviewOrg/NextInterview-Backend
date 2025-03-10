@@ -328,3 +328,94 @@ exports.softDeleteModule = async (req, res) => {
   }
 };
 
+exports.getModuleLastTopic = async (req, res) => {
+  try {
+    const { moduleCode } = req.body;
+    const module = await NewModule.findOne({ module_code: moduleCode });
+
+    if (!module) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+
+    const lastTopic = module.topicData[module.topicData.length - 1];
+
+    res.status(200).json({
+      success: true,
+      message: "Last topic retrieved successfully",
+      data: lastTopic,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to get last topic",
+      error: error.message
+    })
+  }
+};
+
+exports.getModuleTopicLastSubtopic = async (req, res) => {
+  try {
+    const { moduleCode, topicCode } = req.body;
+    const module = await NewModule.findOne({ module_code: moduleCode });
+
+    if (!module) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+
+    const topic = module.topicData.find(topic => topic.topic_code === topicCode);
+
+    if (!topic) {
+      return res.status(404).json({
+        success: false,
+        message: "Topic not found",
+      });
+    }
+
+    const lastSubtopic = topic.subtopicData[topic.subtopicData.length - 1];
+
+    res.status(200).json({
+      success: true,
+      message: "Last subtopic retrieved successfully",
+      data: lastSubtopic,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to get last subtopic",
+      error: error.message
+    })
+  }
+};
+
+exports.getModuleByModuleCode = async (req, res) => {
+  try {
+    const { moduleCode } = req.params;
+    const module = await NewModule.findOne({ module_code: moduleCode });
+
+    if (!module) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Module retrieved successfully",
+      data: module,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to get module",
+      error: error.message
+    })
+  }
+};
+

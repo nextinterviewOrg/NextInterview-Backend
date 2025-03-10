@@ -18,4 +18,7 @@ router.get("/get/moduleCode",addNewModuleController.getAllModuleCodes)
 router.get("/get/module/topic/:moduleCode",addNewModuleController.getTopicCodesByModuleCode)
 router.get('/get/module/topic/subtopic/:moduleCode/:topicCode',addNewModuleController.getSubtopicCodesByModuleAndTopicCode)
 router.delete("/softDelete/:id",addNewModuleController.softDeleteModule)
+router.post("/getModuleLastTopic",addNewModuleController.getModuleLastTopic);
+router.post("/getModuleTopicLastSubtopic",addNewModuleController.getModuleTopicLastSubtopic);
+router.get("/getModule/:moduleCode",addNewModuleController.getModuleByModuleCode)
 module.exports = router;
