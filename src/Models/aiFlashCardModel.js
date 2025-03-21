@@ -7,6 +7,12 @@ const newCardSchema = new mongoose.Schema(
     peopleInteractionCount: Number,
     cardKnown: Number,
     cardUnknown: Number,
+    date:{
+      type:Date
+    },
+    backgroundImage:{
+      type:String
+    }
   },
   {
     timestamps: true,
