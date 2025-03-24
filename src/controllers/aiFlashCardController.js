@@ -5,6 +5,7 @@ exports.createCard = async (req, res) => {
   try {
     {
       const newCard = new NewCard(req.body);
+      console.log("newCard", newCard);
       await newCard.save();
       res.status(201).json({
         success: true,
