@@ -75,6 +75,7 @@ const aiAssistantRoutes = require("./src/routes/aiAssistantRoutes");
 const userSkillAssessmentProgressRoutes = require("./src/routes/userSkillAssessmentProgressRoutes");
 
 const reminderRoutes = require("./src/routes/reminderRoute");
+const blogRoutes = require("./src/routes/blogRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -101,10 +102,6 @@ app.use("/skillAssessment", skillAssessmentRoutes);
 app.use("/smart-response", chatGptRoutes);
 app.use("/tiy", tiyRoutes);
 app.use("/judge0", judge0Routes);
-// app.listen(5000, () => {
-//   console.log("Server started on port 5000");
-// });
-
 app.use("/notification", notificationRoutes);
 app.use("/userProgress", userProgressRoutes);
 app.use("/moduleProgress", moduleProgressRoutes);
@@ -112,4 +109,5 @@ app.use("/aiMockInterview", aiMockInterviewRoutes);
 app.use("/aiAssistant", aiAssistantRoutes);
 app.use("/userSkillAssessmentProgress", userSkillAssessmentProgressRoutes);
 
+app.use("/blog", blogRoutes);
 app.use("/reminder", reminderRoutes);
