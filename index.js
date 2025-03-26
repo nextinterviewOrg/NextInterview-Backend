@@ -72,6 +72,7 @@ const userProgressRoutes = require("./src/routes/userProgressRoutes");
 const moduleProgressRoutes = require("./src/routes/moduleProgressRoutes");
 const aiMockInterviewRoutes = require("./src/routes/aiMockInterviewRoutes");
 const aiAssistantRoutes = require("./src/routes/aiAssistantRoutes");
+const userSkillAssessmentProgressRoutes = require("./src/routes/userSkillAssessmentProgressRoutes");
 
 const reminderRoutes = require("./src/routes/reminderRoute");
 const blogRoutes = require("./src/routes/blogRoutes");
@@ -106,5 +107,7 @@ app.use("/userProgress", userProgressRoutes);
 app.use("/moduleProgress", moduleProgressRoutes);
 app.use("/aiMockInterview", aiMockInterviewRoutes);
 app.use("/aiAssistant", aiAssistantRoutes);
+app.use("/userSkillAssessmentProgress", userSkillAssessmentProgressRoutes);
+
 app.use("/blog", blogRoutes);
 app.use("/reminder", reminderRoutes);
