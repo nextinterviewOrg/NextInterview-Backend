@@ -17,7 +17,7 @@ exports.startModule = async (req, res) => {
 
       moduleProgress = new ModuleProgress({ moduleId: moduleID, moduleCode, progress: [] });
     }
-   
+
     const module = userProgress.progress.find(
       (mod) => mod.moduleCode === moduleCode
     );
@@ -31,7 +31,7 @@ exports.startModule = async (req, res) => {
         completedAt: null,
         progressTopics: [],
       });
-    } 
+    }
     // else {
     //   module.status = 'ongoing';
     //   module.startedAt = new Date();
@@ -73,10 +73,10 @@ exports.startTopic = async (req, res) => {
     }
 
     const module = userProgress.progress.find(
-      (mod) =>{ console.log("mod", mod);  return  mod.moduleCode === moduleCode}
+      (mod) => { console.log("mod", mod); return mod.moduleCode === moduleCode }
     );
     console.log("module", module);
-    
+
     if (!module) {
       console.log("Module not found");
       return res.status(404).json({ message: "Module not found" });
@@ -87,7 +87,7 @@ exports.startTopic = async (req, res) => {
     );
 
     if (!topic) {
-     
+
       module.progressTopics.push({
         topicCode,
         topicID,
@@ -98,17 +98,17 @@ exports.startTopic = async (req, res) => {
       });
     }
     //  else {
-      
+
     //   topic.status = 'ongoing';
     //   topic.startedAt = new Date();
     // }
 
     await userProgress.save();
 
-    const userModuleProgress=  moduleProgress.progress.find(
+    const userModuleProgress = moduleProgress.progress.find(
       (mod) => mod.userId == userId
     )
-     console.log("userModuleProgress", userModuleProgress);
+    console.log("userModuleProgress", userModuleProgress);
     if (!userModuleProgress) {
       console.log("User module progress not found");
       return res.status(404).json({ message: "User module progress not found" });
@@ -128,11 +128,11 @@ exports.startTopic = async (req, res) => {
       });
     }
 
-  
+
 
     await moduleProgress.save();
 
-    res.status(200).json({ message: "Topic started successfully", userProgress: userProgress,moduleProgress: moduleProgress });
+    res.status(200).json({ message: "Topic started successfully", userProgress: userProgress, moduleProgress: moduleProgress });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error starting topic", error: error.message });
@@ -171,7 +171,7 @@ exports.startSubtopic = async (req, res) => {
     );
 
     if (!subtopic) {
-      
+
       topic.progressSubtopics.push({
         subtopicCode,
         subtopicId,
@@ -179,18 +179,18 @@ exports.startSubtopic = async (req, res) => {
         startedAt: new Date(),
         completedAt: null,
       });
-    } 
+    }
     // else {
-     
+
     //   subtopic.status = 'ongoing';
     //   subtopic.startedAt = new Date();
     // }
 
     await userProgress.save();
-    const userModuleProgress=  moduleProgress.progress.find(
+    const userModuleProgress = moduleProgress.progress.find(
       (mod) => mod.userId == userId
     )
-   
+
     if (!userModuleProgress) {
       return res.status(404).json({ message: "User module progress not found" });
     }
@@ -212,7 +212,7 @@ exports.startSubtopic = async (req, res) => {
     }
     await moduleProgress.save();
 
-    res.status(200).json({ message: "Subtopic started successfully", userProgress: userProgress ,moduleProgress: moduleProgress});
+    res.status(200).json({ message: "Subtopic started successfully", userProgress: userProgress, moduleProgress: moduleProgress });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error starting subtopic", error: error.message });
@@ -232,7 +232,7 @@ exports.completeModule = async (req, res) => {
     if (!moduleProgress) {
       return res.status(404).json({ message: "Module progress not found" });
     }
-   
+
     const module = userProgress.progress.find(
       (mod) => mod.moduleCode == moduleCode
     );
@@ -242,7 +242,7 @@ exports.completeModule = async (req, res) => {
 
     module.status = 'completed';
     module.completedAt = new Date();
-    module.completed=true;
+    module.completed = true;
 
     await userProgress.save();
 
@@ -260,7 +260,7 @@ exports.completeModule = async (req, res) => {
 
     await moduleProgress.save();
 
-    res.status(200).json({ message: "Module completed successfully", userProgress: userProgress,moduleProgress: moduleProgress}); 
+    res.status(200).json({ message: "Module completed successfully", userProgress: userProgress, moduleProgress: moduleProgress });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error completing module", error: error.message });
@@ -273,7 +273,7 @@ exports.completeTopic = async (req, res) => {
 
     const userProgress = await UserProgress.findOne({ userId });
     let moduleProgress = await ModuleProgress.findOne({ moduleCode });
-    let userModuleProgress=  moduleProgress.progress.find(
+    let userModuleProgress = moduleProgress.progress.find(
       (mod) => mod.userId == userId
     )
     let usertopicProgress = userModuleProgress.progressTopics.find(
@@ -288,7 +288,7 @@ exports.completeTopic = async (req, res) => {
       return res.status(404).json({ message: "User progress not found" });
     }
 
-   
+
     const module = userProgress.progress.find(
       (mod) => mod.moduleCode === moduleCode
     );
@@ -297,7 +297,7 @@ exports.completeTopic = async (req, res) => {
       return res.status(404).json({ message: "Module not found" });
     }
 
-    
+
     const topic = module.progressTopics.find(
       (top) => top.topicCode === topicCode
     );
@@ -306,14 +306,14 @@ exports.completeTopic = async (req, res) => {
       return res.status(404).json({ message: "Topic not found" });
     }
 
-  
+
     topic.status = 'completed';
     topic.completedAt = new Date();
 
-   
+
     await userProgress.save();
 
-    res.status(200).json({ message: "Topic completed successfully", userProgress: userProgress,moduleProgress: moduleProgress});
+    res.status(200).json({ message: "Topic completed successfully", userProgress: userProgress, moduleProgress: moduleProgress });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error completing topic", error: error.message });
@@ -324,14 +324,14 @@ exports.completeSubtopic = async (req, res) => {
   try {
     const { userId, moduleCode, topicCode, subtopicCode } = req.body;
 
-   
+
     const userProgress = await UserProgress.findOne({ userId });
 
     if (!userProgress) {
       return res.status(404).json({ message: "User progress not found" });
     }
 
-    
+
     const module = userProgress.progress.find(
       (mod) => mod.moduleCode === moduleCode
     );
@@ -340,7 +340,7 @@ exports.completeSubtopic = async (req, res) => {
       return res.status(404).json({ message: "Module not found" });
     }
 
-  
+
     const topic = module.progressTopics.find(
       (top) => top.topicCode === topicCode
     );
@@ -349,7 +349,7 @@ exports.completeSubtopic = async (req, res) => {
       return res.status(404).json({ message: "Topic not found" });
     }
 
-    
+
     const subtopic = topic.progressSubtopics.find(
       (sub) => sub.subtopicCode === subtopicCode
     );
@@ -358,15 +358,15 @@ exports.completeSubtopic = async (req, res) => {
       return res.status(404).json({ message: "Subtopic not found" });
     }
 
-   
+
     subtopic.status = 'completed';
     subtopic.completedAt = new Date();
 
-   
+
     await userProgress.save();
 
     let moduleProgress = await ModuleProgress.findOne({ moduleCode });
-    let userModuleProgress=  moduleProgress.progress.find(
+    let userModuleProgress = moduleProgress.progress.find(
       (mod) => mod.userId == userId
     )
     let usertopicProgress = userModuleProgress.progressTopics.find(
@@ -379,7 +379,7 @@ exports.completeSubtopic = async (req, res) => {
     usersubtopicProgress.completedAt = new Date();
     usersubtopicProgress.completed = true;
 
-    res.status(200).json({ message: "Subtopic completed successfully", userProgress: userProgress ,moduleProgress: moduleProgress});
+    res.status(200).json({ message: "Subtopic completed successfully", userProgress: userProgress, moduleProgress: moduleProgress });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error completing subtopic", error: error.message });
@@ -413,7 +413,7 @@ exports.getProgressStats = async (req, res) => {
     const userProgress = await UserProgress.findOne({ userId });
 
     if (!userProgress) {
-      return res.status(200).json({success: false, message: "User progress not found" });
+      return res.status(200).json({ success: false, message: "User progress not found" });
     }
 
     let moduleStatsData = [];
@@ -482,7 +482,7 @@ exports.getUserProgressByModuleCode = async (req, res) => {
       return res.status(400).json({ message: "UserId and moduleCode are required" });
     }
 
-    const userProgress = await UserProgress.findOne({ userId });   
+    const userProgress = await UserProgress.findOne({ userId });
 
     if (!userProgress) {
       return res.status(200).json({ success: false, message: "User progress not found" });
@@ -524,10 +524,10 @@ exports.getUserProgressByTopicCode = async (req, res) => {
     const topicProgress = moduleProgress.progressTopics.find((topic) => topic.topicCode === topicCode);
 
     if (!topicProgress) {
-      return res.status(200).json({ success: false, message: "Topic progress not found" });    
+      return res.status(200).json({ success: false, message: "Topic progress not found" });
     }
 
-    res.status(200).json({ success: true, message: "User topic progress fetched successfully", data: topicProgress });    
+    res.status(200).json({ success: true, message: "User topic progress fetched successfully", data: topicProgress });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching user topic progress", error: error.message });
@@ -570,5 +570,34 @@ exports.getUserProgressBySubtopicCode = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching user subtopic progress", error: error.message });
+  }
+};
+
+exports.getUserCompletedModules = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ message: "UserId is required" });
+    }
+
+    const userProgress = await UserProgress.findOne({ userId });
+
+    if (!userProgress) {
+      return res.status(200).json({ success: false, message: "User progress not found" });
+    }
+
+    const completedModules = userProgress.progress
+      .filter((mod) => mod.completed === true)
+      .map((mod) => ({
+        moduleCode: mod.moduleCode,
+        moduleId: mod.moduleID,
+      }));
+    console.log(completedModules);
+
+    res.status(200).json({ success: true, message: "User completed modules fetched successfully", data: completedModules });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching user completed modules", error: error.message });
   }
 };
