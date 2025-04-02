@@ -12,11 +12,18 @@ const newCardSchema = new mongoose.Schema(
     },
     backgroundImage:{
       type:String
-    }
+    },
+    interacted_users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ] 
   },
   {
     timestamps: true,
-  }
+  },
+ 
 );
  
 module.exports = mongoose.model("FlashCard", newCardSchema);
