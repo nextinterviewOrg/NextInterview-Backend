@@ -11,6 +11,9 @@ router.get("/module/:moduleId", userFeedbackController.getModuleFeedback);
 // Get all feedback for a user
 router.get("/user/:userId", userFeedbackController.getUserFeedback);
 
+// Check if user has already submitted feedback for a specific module
+router.get("/user/:userId/module/:moduleId", userFeedbackController.checkUserModuleFeedback);
+
 // Get feedback statistics for a module
 router.get("/module/:moduleId/stats", userFeedbackController.getModuleFeedbackStats);
 

@@ -23,6 +23,15 @@ exports.createFeedback = async (req, res) => {
       });
     }
 
+    // Check if feedback already exists for this user and module
+    const existingFeedback = await UserFeedback.findOne({ userId, moduleId });
+    if (existingFeedback) {
+      return res.status(400).json({
+        success: false,
+        message: "Feedback has already been submitted for this module",
+      });
+    }
+
     // Create new feedback
     const newFeedback = new UserFeedback({
       userId,
@@ -91,6 +100,28 @@ exports.getUserFeedback = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error retrieving feedback",
+      error: err.message,
+    });
+  }
+};
+
+// Check if user has already submitted feedback for a specific module
+exports.checkUserModuleFeedback = async (req, res) => {
+  try {
+    const { userId, moduleId } = req.params;
+
+    // Check if feedback exists for this user and module
+    const feedback = await UserFeedback.find({ userId, moduleId });
+
+    res.status(200).json({
+      success: true,
+      data: feedback,
+    });
+  } catch (err) {
+    console.error("Error checking user module feedback:", err);
+    res.status(500).json({
+      success: false,
+      message: "Error checking feedback",
       error: err.message,
     });
   }
