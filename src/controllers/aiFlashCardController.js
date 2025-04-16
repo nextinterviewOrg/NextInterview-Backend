@@ -111,9 +111,13 @@ exports.deleteCard = async (req, res) => {
     });
   }
 };
+
+
+
 exports.updateCardStats = async (req, res) => {
   try {
     const { userId, cardId, cardKnow } = req.body;
+    console.log("req.body", req.body);
     const cardData = await NewCard.findOne({ _id: cardId });
 
     if (!cardData) {

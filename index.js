@@ -77,6 +77,8 @@ const userSkillAssessmentProgressRoutes = require("./src/routes/userSkillAssessm
 const reminderRoutes = require("./src/routes/reminderRoute");
 const blogRoutes = require("./src/routes/blogRoutes");
 
+const userFeedbackRoutes = require("./src/routes/userFeedbackRoutes");
+
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
 app.use("/designation", designationRoutes);
@@ -111,3 +113,5 @@ app.use("/userSkillAssessmentProgress", userSkillAssessmentProgressRoutes);
 
 app.use("/blog", blogRoutes);
 app.use("/reminder", reminderRoutes);
+
+app.use("/feedback", userFeedbackRoutes); 
