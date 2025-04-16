@@ -15,7 +15,6 @@ router.delete("/:id", aiFlashCardController.deleteCard);
 // UPDATE
 router.put("/:id", aiFlashCardController.updateCard);
 
-
 router.put("/update/stats",aiFlashCardController.updateCardStats);
 
 router.get("/get/user/:userId",aiFlashCardController.getCardsByUserId);

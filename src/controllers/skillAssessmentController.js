@@ -4,10 +4,10 @@ const SkillAssess = require('../Models/skillAssessmentModel');  // Import the Sk
 exports.getSkillAssessments = async (req, res) => {
   try {
     // Get query parameters from the request
-    const { module_code, topic_code, subtopic_code, question_type,level } = req.query;
+    const { module_code, topic_code, subtopic_code, question_type, level } = req.query;
 
     // Create a filter object to build the query based on the optional parameters
-    const filter = {isDeleted: false};
+    const filter = { isDeleted: false };
 
     if (module_code) {
       filter.module_code = module_code;
@@ -21,7 +21,7 @@ exports.getSkillAssessments = async (req, res) => {
     if (question_type) {
       filter.question_type = question_type;
     }
-    if(level){
+    if (level) {
       filter.level = level;
     }
 
@@ -94,7 +94,41 @@ exports.softDeleteSkillAssessment = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Error deleting skill assessment',
-      error: error.message,  
+      error: error.message,
     });
   }
 };
+exports.evaluateSkillAssessment = async (req, res) => {
+  try {
+    const { id, option } = req.body;
+    const skillAssessment = await SkillAssess.findById(id);
+    if (!skillAssessment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Skill assessment question not found',
+      });
+    }
+    if (skillAssessment.correct_option === option) {
+      return res.status(200).json({
+        success: true,
+        message: 'Skill assessment evaluated successfully',
+        skillAssessment: skillAssessment,
+        result: true
+      })
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: 'Skill assessment evaluated successfully',
+        skillAssessment: skillAssessment,
+        result: false
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error evaluating skill assessment',
+      error: error.message,
+    });
+  }
+}

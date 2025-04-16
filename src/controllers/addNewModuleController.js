@@ -186,8 +186,42 @@ exports.getModuleDataByID = async (req, res) => {
 exports.updateModuleDataByID = async (req, res) => {
   try {
     const { id } = req.params;
+    const updateData = req.body;
 
-    const moduleData = await NewModule.findByIdAndUpdate(id, req.body, {
+    // First get the existing module to preserve codes
+    const existingModule = await NewModule.findById(id);
+    if (!existingModule) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found",
+      });
+    }
+
+    // Preserve existing codes while updating topics and subtopics
+    if (updateData.topicData) {
+      updateData.topicData = updateData.topicData.map((topic, index) => {
+        // If topic exists in original module, preserve its code
+        const existingTopic = existingModule.topicData[index];
+        const topicCode = existingTopic ? existingTopic.topic_code : generateNextCode(existingModule.module_code + "A000", "topic");
+        
+        return {
+          ...topic,
+          topic_code: topicCode,
+          subtopicData: topic.subtopicData.map((subtopic, subIndex) => {
+            // If subtopic exists in original module, preserve its code
+            const existingSubtopic = existingTopic?.subtopicData[subIndex];
+            const subtopicCode = existingSubtopic ? existingSubtopic.subtopic_code : generateNextCode(topicCode + "A000", "subtopic");
+            
+            return {
+              ...subtopic,
+              subtopic_code: subtopicCode,
+            };
+          }),
+        };
+      });
+    }
+
+    const moduleData = await NewModule.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });
