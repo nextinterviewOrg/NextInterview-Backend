@@ -111,3 +111,74 @@ exports.deleteCard = async (req, res) => {
     });
   }
 };
+
+
+
+exports.updateCardStats = async (req, res) => {
+  try {
+    const { userId, cardId, cardKnow } = req.body;
+    console.log("req.body", req.body);
+    const cardData = await NewCard.findOne({ _id: cardId });
+
+    if (!cardData) {
+      return res.status(404).json({ success: false, message: "FlashCard not found" });
+    }
+
+    // Prepare the update object
+    let updateObject = {
+      $inc: {
+        peopleInteractionCount: 1,  // Increment people interaction count
+      },
+      $addToSet: {  // Ensure user is added only once (no duplicates)
+        interacted_users: userId,
+      }
+    };
+
+    // Conditional increment based on cardKnow value
+    if (cardKnow) {
+      updateObject.$inc.cardKnown = (cardData.cardKnown || 0) + 1;  // Increment cardKnown if true
+    } else {
+      updateObject.$inc.cardUnknown = (cardData.cardUnknown || 0) + 1; // Increment cardUnknown if false
+    }
+
+    // Perform the update
+    const updatedCardData = await NewCard.findOneAndUpdate(
+      { _id: cardId },
+      updateObject,
+      { new: true, runValidators: true }
+    );
+
+
+    res.status(200).json({
+      success: true,
+      message: "Card Stats updated successfully",
+      data: updatedCardData,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update card stats",
+      error: err.message,
+    });
+  }
+};
+
+exports.getCardsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const cards = await NewCard.find({   interacted_users: { $nin: [userId] } });
+
+    res.status(200).json({
+      success: true,
+      data: cards,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch cards by user ID",
+      error: err.message,
+    });
+  }
+};
