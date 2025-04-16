@@ -16,6 +16,14 @@
     {
       "path": "/cron/removeRestriction",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/notification/send/dailyNotification",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/notification/send/weeklyNotification",
+      "schedule": "0 0 * * *"
     }
   ]
 }

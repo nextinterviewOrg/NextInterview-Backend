@@ -9,4 +9,6 @@ router.delete("/deleteNotification/:id", notificationController.deleteNotificati
 router.put("/updateNotification/:id", notificationController.updateNotification);
 router.post("/notificationRead/:userId/:notificationId", notificationController.markNotificationAsRead);
 router.get("/getNotificationByUser/:userId", notificationController.getNotificationByUserId);
+router.get("/send/dailyNotification", notificationController.sendDailyNotification);
+router.get("/send/weeklyNotification", notificationController.sendWeeklyNotification);
 module.exports = router;
