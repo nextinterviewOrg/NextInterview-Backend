@@ -117,13 +117,9 @@ exports.deleteNotification = async (req, res) => {
 
 exports.updateNotification = async (req, res) => {
     try {
-        const { headingText, subText, Trigger } = req.body;
+        const { headingText, subText, Trigger, timeZone, frequency } = req.body;
 
-        const notification = await Notification.findByIdAndUpdate(req.params.id, {
-            headingText,
-            subText,
-            Trigger
-        }, { new: true });
+        const notification = await Notification.findByIdAndUpdate(req.params.id,  req.body, { new: true });
 
         if (!notification) {
             return res.status(404).json({ message: 'Notification not found' });
@@ -177,10 +173,104 @@ exports.getNotificationByUserId = async (req, res) => {
             return res.status(404).json({ message: "No notifications found for this user" });
         }
 
-        
+
         res.status(200).json({ message: 'success', data: userNotifications });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Error fetching notifications' });
+    }
+};
+exports.sendDailyNotification = async (req, res) => {
+    try {
+        const notifications = await Notification.find({ frequency: 'Daily' });
+        console.log(notifications);
+        for (const notification of notifications) {
+            const users = await User.find();
+            for (const user of users) {
+                const userNotification = new UserNotification({
+                    user_id: user._id,  // User's _id
+                    notification_id: notification._id,  // Notification's _id
+                    message: `${notification.headingText}: ${notification.subText}`,
+                    is_pushed: false, // Initially not pushed
+                });
+
+                await userNotification.save();
+                console.log(`User notification created for ${user.user_name}`);
+                if (notification.notificationType === "Only e-mail" || notification.notificationType === "Both notification and e-mail") {
+                    const mailOptions = {
+                        from: 'thevasudev31@gmail.com',
+                        to: user.user_email, // Dynamically use user email
+                        subject: notification.headingText,
+                        text: notification.subText
+                    };
+    
+                    try {
+                        await transporter.sendMail(mailOptions);
+                        console.log(`Email sent to ${user.user_email}`);
+                    } catch (err) {
+                        console.error(`Error sending email to ${user.user_email}: ${err}`);
+                    }
+                }
+
+            }
+
+
+        }
+        res.status(200).json({ message: 'Daily notifications sent successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error sending daily notifications',error: err });  
+    }
+};
+
+
+exports.sendWeeklyNotification = async (req, res) => {
+    try {
+        const currentDate = new Date();
+        const currentDay = currentDate.getDay(); 
+        console.log(currentDay);
+
+        
+        if (currentDay !== 0) {
+            return res.status(200).json({ message: 'Today is not Sunday. No weekly notifications sent.' });
+        }
+        const notifications = await Notification.find({ frequency: 'Weekly' });
+
+        for (const notification of notifications) {
+            const users = await User.find();
+            for (const user of users) {
+                const userNotification = new UserNotification({
+                    user_id: user._id,  // User's _id
+                    notification_id: notification._id,  // Notification's _id
+                    message: `${notification.headingText}: ${notification.subText}`,
+                    is_pushed: false, // Initially not pushed
+                });
+
+                await userNotification.save();
+                console.log(`User notification created for ${user.user_name}`);
+                if (notification.notificationType === "Only e-mail" || notification.notificationType === "Both notification and e-mail") {
+                    const mailOptions = {
+                        from: 'thevasudev31@gmail.com',
+                        to: user.user_email, // Dynamically use user email
+                        subject:notification.headingText,
+                        text: notification.subText
+                    };
+    
+                    try {
+                        await transporter.sendMail(mailOptions);
+                        console.log(`Email sent to ${user.user_email}`);
+                    } catch (err) {
+                        console.error(`Error sending email to ${user.user_email}: ${err}`);
+                    }
+                }
+
+            }
+
+
+        }
+        res.status(200).json({ message: 'Daily notifications sent successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error sending daily notifications',error: err });
     }
 };
