@@ -3,7 +3,7 @@ const cors = require("cors");
 const connectDB = require("./src/config/dbConfig");
 require("dotenv").config();
 const { Webhook } = require("svix");
-
+const{setupCronJobs} = require("./src/jobs/runJobs");
 const app = express();
 app.use(express.json());
 // app.use(cors());
@@ -41,6 +41,8 @@ connectDB()
     console.error("MongoDB connection error:", err);
     process.exit(1); // Exit process with failure
   });
+
+setupCronJobs();
 const notificationRoutes = require("./src/routes/notificationRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const jobResponseRoutes = require("./src/routes/jobResponseRoutes");
