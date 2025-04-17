@@ -27,7 +27,7 @@ exports.sendDailyNotificationJobs = async() => {
                     console.log(`User notification created for ${user.user_name}`);
                     if (notification.notificationType === "Only e-mail" || notification.notificationType === "Both notification and e-mail") {
                         const mailOptions = {
-                            from: 'thevasudev31@gmail.com',
+                            from: process.env.EMAIL,
                             to: user.user_email, // Dynamically use user email
                             subject: notification.headingText,
                             text: notification.subText
@@ -78,7 +78,7 @@ exports.weeklyNotificationJobs = async() => {
                     console.log(`User notification created for ${user.user_name}`);
                     if (notification.notificationType === "Only e-mail" || notification.notificationType === "Both notification and e-mail") {
                         const mailOptions = {
-                            from: 'thevasudev31@gmail.com',
+                            from: process.env.EMAIL,
                             to: user.user_email, // Dynamically use user email
                             subject:notification.headingText,
                             text: notification.subText
