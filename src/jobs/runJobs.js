@@ -7,7 +7,7 @@ exports.setupCronJobs=async ()=> {
     console.log('Setting up cron jobs');
     connectDB();
     // Daily Cron Job: Run every day at midnight
-    cron.schedule('0 0 * * *', async () => {
+    cron.schedule('*/30 * * * * *', async () => {
         connectDB();
         console.log('Running daily notification task and restriction tasks');
         try {
@@ -21,7 +21,7 @@ exports.setupCronJobs=async ()=> {
     });
 
     // Weekly Cron Job: Run every Sunday at midnight
-    cron.schedule('0 0 * * SUN', async () => {
+    cron.schedule( '*/30 * * * * SUN', async () => {
         connectDB();
         console.log('Running weekly notification task');
         try {

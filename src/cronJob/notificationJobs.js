@@ -14,6 +14,15 @@ exports.sendDailyNotificationJobs = async() => {
             const notifications = await Notification.find({ frequency: 'Daily' });
             console.log(notifications);
             for (const notification of notifications) {
+                const now = new Date().toLocaleTimeString('en-GB', {
+                    timeZone: notification.timeZone || 'UTC',
+                    hour12: false,
+                    hour:   '2-digit',
+                    minute: '2-digit'
+                  });
+                  if (now !== notification.time) {
+                    continue;
+                  }
                 const users = await User.find();
                 for (const user of users) {
                     const userNotification = new UserNotification({
@@ -65,6 +74,15 @@ exports.weeklyNotificationJobs = async() => {
             const notifications = await Notification.find({ frequency: 'Weekly' });
     
             for (const notification of notifications) {
+                const now = new Date().toLocaleTimeString('en-GB', {
+                    timeZone: notification.timeZone || 'UTC',
+                    hour12: false,
+                    hour:   '2-digit',
+                    minute: '2-digit'
+                  });
+                  if (now !== notification.time) {
+                    continue;
+                  }
                 const users = await User.find();
                 for (const user of users) {
                     const userNotification = new UserNotification({
