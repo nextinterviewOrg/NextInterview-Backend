@@ -10,8 +10,9 @@ exports.removeExpiredRestrictions = async () => {
 
     // Get all users from Clerk
     const users = await clerkClient.users.getUserList();
+    console.log(`Found ${users.length} users.`,users);
 
-    for (const user of users) {
+    for (const user of users.data) {
         const { restrictionEnd } = user.privateMetadata;
 
         if (restrictionEnd) {
