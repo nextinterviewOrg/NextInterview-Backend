@@ -142,6 +142,7 @@ exports.startTopic = async (req, res) => {
 exports.startSubtopic = async (req, res) => {
   try {
     const { userId, moduleCode, topicCode, subtopicCode, subtopicId } = req.body;
+    console.log("body", req.body);
 
     const userProgress = await UserProgress.findOne({ userId });
     let moduleProgress = await ModuleProgress.findOne({ moduleCode });
@@ -324,7 +325,7 @@ exports.completeSubtopic = async (req, res) => {
   try {
     const { userId, moduleCode, topicCode, subtopicCode } = req.body;
 
-
+    console.log("body", req.body);
     const userProgress = await UserProgress.findOne({ userId });
 
     if (!userProgress) {
@@ -348,7 +349,7 @@ exports.completeSubtopic = async (req, res) => {
     if (!topic) {
       return res.status(404).json({ message: "Topic not found" });
     }
-
+    console.log("topic", topic);
 
     const subtopic = topic.progressSubtopics.find(
       (sub) => sub.subtopicCode === subtopicCode
