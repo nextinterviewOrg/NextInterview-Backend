@@ -80,6 +80,7 @@ const reminderRoutes = require("./src/routes/reminderRoute");
 const blogRoutes = require("./src/routes/blogRoutes");
 
 const userFeedbackRoutes = require("./src/routes/userFeedbackRoutes");
+const moduleFeedbackRoutes = require("./src/routes/moduleFeedbackRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -117,3 +118,4 @@ app.use("/blog", blogRoutes);
 app.use("/reminder", reminderRoutes);
 
 app.use("/feedback", userFeedbackRoutes); 
+app.use("/moduleFeedback", moduleFeedbackRoutes);
