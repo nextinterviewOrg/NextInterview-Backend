@@ -5,9 +5,11 @@ const NewModule = require("../Models/addNewModuleModel");
 
 exports.addModuleFeedback = async (req, res) => {
     try {
-        const { moduleId, userId, feedback, rating, feedback_order } = req.body;
-        if (!moduleId || !userId || !feedback || !rating || !feedback_order) {
-            return res.status(400).json({ message: "Missing required fields" });
+        const { moduleId, userId, feedback, rating, feedback_order, skip } = req.body;
+        if (skip == false) {
+            if (!moduleId || !userId || !feedback || !rating || !feedback_order) {
+                return res.status(400).json({ message: "Missing required fields" });
+            }
         }
         const user = await User.findById(userId);
         if (!user) {
@@ -35,8 +37,14 @@ exports.addModuleFeedback = async (req, res) => {
                     return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
                 }
             } else {
-                const newFeedback = await ModuleFeedback.create({ moduleId, feedback_one: [{ userId: userId, rating: rating, feedback: feedback }] });
-                return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
+                if (skip == true) {
+                    const newFeedback = await ModuleFeedback.create({ moduleId, feedback_one: [{ userId: userId, skip: true }] });
+                    return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
+                } else {
+                    const newFeedback = await ModuleFeedback.create({ moduleId, feedback_one: [{ userId: userId, rating: rating, feedback: feedback }] });
+                    return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
+                }
+
             }
         } else if (feedback_order == 2) {
             const moduleFeedback = await ModuleFeedback.findOne({ moduleId });
@@ -55,15 +63,21 @@ exports.addModuleFeedback = async (req, res) => {
                     return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
                 }
             } else {
-                const newFeedback = await ModuleFeedback.create({ moduleId, feedback_two: [{ userId: userId, rating: rating, feedback: feedback }] });
-                return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
+                if (skip == true) {
+                    const newFeedback = await ModuleFeedback.create({ moduleId, feedback_two: [{ userId: userId, skip: true }] });
+                    return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
+                } else {
+                    const newFeedback = await ModuleFeedback.create({ moduleId, feedback_two: [{ userId: userId, rating: rating, feedback: feedback }] });
+                    return res.status(200).json({ sucess: true, message: "Feedback added successfully", data: newFeedback });
+                }
+
             }
         }
 
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({sucess:false, message: "Error adding feedback", error: error.message });
+        res.status(500).json({ sucess: false, message: "Error adding feedback", error: error.message });
     }
 };
 
@@ -77,7 +91,7 @@ exports.getModuleFeedback = async (req, res) => {
         return res.status(200).json({ sucess: true, data: moduleFeedback });
     } catch (error) {
         console.error(error);
-        res.status(500).json({sucess:false, message: "Error getting module feedback", error: error.message });
+        res.status(500).json({ sucess: false, message: "Error getting module feedback", error: error.message });
     }
 };
 exports.getAllModuleFeedback = async (req, res) => {
@@ -89,13 +103,13 @@ exports.getAllModuleFeedback = async (req, res) => {
         return res.status(200).json({ sucess: true, data: moduleFeedback });
     } catch (error) {
         console.error(error);
-        res.status(500).json({sucess:false, message: "Error getting module feedback", error: error.message });
+        res.status(500).json({ sucess: false, message: "Error getting module feedback", error: error.message });
     }
 };
 
 exports.getUserFeedbackCheck = async (req, res) => {
     try {
-        const { userId,feedback_order,moduleId } = req.body;
+        const { userId, feedback_order, moduleId } = req.body;
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -106,32 +120,32 @@ exports.getUserFeedbackCheck = async (req, res) => {
         }
         const moduleFeedback = await ModuleFeedback.findOne({ moduleId });
         if (!moduleFeedback) {
-            return res.status(200).json({ sucess: true,found: false, message: "User feedback not found" });
+            return res.status(200).json({ sucess: true, found: false, message: "User feedback not found" });
         }
         if (feedback_order == 1) {
-            if( moduleFeedback.feedback_one.some((element) => element.userId == userId)) {
+            if (moduleFeedback.feedback_one.some((element) => element.userId == userId)) {
                 moduleFeedback.feedback_one.some((element) => {
                     if (element.userId == userId) {
                         return res.status(200).json({ sucess: true, found: true, data: element });
-                    } 
+                    }
                 })
-            }else{
-                return res.status(200).json({ sucess: true,found: false, message: "User feedback not found" });
+            } else {
+                return res.status(200).json({ sucess: true, found: false, message: "User feedback not found" });
             }
         } else if (feedback_order == 2) {
-            if( moduleFeedback.feedback_two.some((element) => element.userId == userId)) {
+            if (moduleFeedback.feedback_two.some((element) => element.userId == userId)) {
                 moduleFeedback.feedback_two.some((element) => {
                     if (element.userId == userId) {
                         return res.status(200).json({ sucess: true, found: true, data: element });
-                    } 
+                    }
                 })
-            }else{
-                return res.status(200).json({ sucess: true,found: false, message: "User feedback not found" });
+            } else {
+                return res.status(200).json({ sucess: true, found: false, message: "User feedback not found" });
             }
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({sucess:false, message: "Error getting user feedback", error: error.message });
+        res.status(500).json({ sucess: false, message: "Error getting user feedback", error: error.message });
     }
 };
 

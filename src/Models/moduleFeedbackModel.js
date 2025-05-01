@@ -15,17 +15,21 @@ const moduleFeedbackSchema = new mongoose.Schema({
             },
             rating: {
                 type: Number,
-                required: true,
+                required: false,
                 min: 1,
                 max: 5
             },
             feedback: {
                 type: String,
-                required: true
+                required: false
             },
             timestamp: {
                 type: Date,
                 default: Date.now
+            },
+            skip: {
+                type: Boolean,
+                default: false
             }
         }
     ],
@@ -38,17 +42,21 @@ const moduleFeedbackSchema = new mongoose.Schema({
             },
             rating: {
                 type: Number,
-                required: true,
+                required: false,
                 min: 1,
                 max: 5
             },
             feedback: {
                 type: String,
-                required: true
+                required: false
             },
             timestamp: {
                 type: Date,
                 default: Date.now
+            },
+            skip: {
+                type: Boolean,
+                default: false
             }
         }
     ]

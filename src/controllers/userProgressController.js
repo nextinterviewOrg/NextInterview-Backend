@@ -354,7 +354,7 @@ exports.completeSubtopic = async (req, res) => {
     const subtopic = topic.progressSubtopics.find(
       (sub) => sub.subtopicCode === subtopicCode
     );
-
+ 
     if (!subtopic) {
       return res.status(404).json({ message: "Subtopic not found" });
     }
