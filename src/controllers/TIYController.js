@@ -96,3 +96,61 @@ exports.softDeleteTIY = async (req, res) => {
     });
   }
 };
+exports.editTIYQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const question= await TIYModel.findById(id);
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: 'Question Bank not found',
+      })
+    }
+    if(question.question_type==="mcq" || question.question_type==="approach" ){
+     return res.status(400).json({
+       success: false,
+       message: 'Question Type must be single-line or multi-line',
+     })
+    }
+    const questionbank = await TIYModel.findOneAndUpdate({ _id: id }, req.body, { new: true });
+    if (!questionbank) {
+      return res.status(404).json({
+        success: false,
+        message: 'Question Bank not found',
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Question Bank updated successfully',
+      questionbank: questionbank
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error updating Question Bank',
+      error: error.message,
+    });
+  }
+};
+
+exports.geTIYByModuleCode = async (req, res) => {
+  try {
+    const { module_code } = req.params;
+    const tiys = await TIYModel.find({ module_code: module_code, isDeleted: false });
+    if (!tiys.length) {
+      return res.status(404).json({ success: false, message: 'No try it yourself found' });
+    }
+    return res.status(200).json({
+      success: true,
+      data: tiys,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching try it yourself',
+      error: error.message,
+    });
+  }
+};

@@ -149,4 +149,93 @@ exports.getUserFeedbackCheck = async (req, res) => {
     }
 };
 
+exports.getFeedbackModuleId = async (req, res) => {
+    try {
+        const { moduleId } = req.params;
+        const module = await NewModule.findById(moduleId);
+        if (!module) {
+            return res.status(404).json({ message: "Module not found" });
+        }
+        const moduleFeedback = await ModuleFeedback.findOne({ moduleId })
+            .populate("feedback_one.userId")
+            .populate("feedback_two.userId")
+            .lean();
+        if (!moduleFeedback) {
+            return res.status(404).json({ message: "Module feedback not found" });
+        }
+        const userFeedbackMap = new Map();
+        processFeedbackArray(moduleFeedback.feedback_one, userFeedbackMap, 1);
+        processFeedbackArray(moduleFeedback.feedback_two, userFeedbackMap, 2);
+        const aggregatedFeedback = Array.from(userFeedbackMap.values());
+        return res.status(200).json({ sucess: true, module: module, submittedUserFeedbackCount: aggregatedFeedback.length, data: aggregatedFeedback });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ sucess: false, message: "Error getting module feedback", error: error.message });
+    }
+};
+function processFeedbackArray(feedbackArray, userMap, rating_order) {
+    feedbackArray.forEach((fb) => {
+        if (fb.skip) return; // Ignore skipped feedback
+
+        const user = fb.userId;
+        if (!user) return; // Skip if user not populated
+
+        const userId = user._id.toString();
+
+        // Get or create user entry in map
+        if (!userMap.has(userId)) {
+            userMap.set(userId, {
+                user: {
+                    _id: user._id,
+                    username: user.user_name,
+                    email: user.user_email,
+                },
+                totalRating: 0,
+                averageRating: 0,
+                feedbacks: [],
+            });
+        }
+
+        const userData = userMap.get(userId);
+
+        // Add rating if provided
+        if (typeof fb.rating === "number") {
+            if (rating_order == 2 && userData.totalRating > 0 && fb.rating > 0) {
+                userData.averageRating = Math.round((userData.totalRating + fb.rating) / 2);
+                userData.totalRating += fb.rating;
+            } else {
+                userData.totalRating += fb.rating;
+                userData.averageRating = userData.totalRating;
+            }
+        }
+
+        // Add feedback entry
+        userData.feedbacks.push({
+            rating: fb.rating,
+            feedback: fb.feedback,
+            timestamp: fb.timestamp,
+            feedbackType: fb.feedbackType, // Add if you have type information
+        });
+    });
+}
+
+exports.getAllModuleFeedbacksRatings = async (req, res) => {
+    try {
+        const moduleFeedbacks = await ModuleFeedback.find({}).populate("feedback_one.userId").populate("feedback_two.userId").lean();
+        const AllFeedbacks = [];
+        moduleFeedbacks.forEach((moduleFeedback) => {
+            const userFeedbackMap = new Map();
+            processFeedbackArray(moduleFeedback.feedback_one, userFeedbackMap, 1);
+            processFeedbackArray(moduleFeedback.feedback_two, userFeedbackMap, 2);
+            const aggregatedFeedback = Array.from(userFeedbackMap.values());
+            const finalData = { module: moduleFeedback, submittedUserFeedbackCount: aggregatedFeedback.length, data: aggregatedFeedback };
+            AllFeedbacks.push(finalData);
+        });
+
+        return res.status(200).json({ sucess: true, data: AllFeedbacks });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ sucess: false, message: "Error getting module feedback", error: error.message });
+    }
+};
 
