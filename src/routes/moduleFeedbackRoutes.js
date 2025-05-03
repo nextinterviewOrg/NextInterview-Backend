@@ -6,5 +6,7 @@ router.post("/", moduleFeedbackController.addModuleFeedback);
 router.get("/get/:moduleId", moduleFeedbackController.getModuleFeedback);
 router.get("/getAll", moduleFeedbackController.getAllModuleFeedback);
 router.post("/checkfeedback/exists", moduleFeedbackController.getUserFeedbackCheck);  
+router.get("/getmodulefeedback/:moduleId", moduleFeedbackController.getFeedbackModuleId);
+router.get("/getAllModulefeedbackstats", moduleFeedbackController.getAllModuleFeedbacksRatings);
 
 module.exports = router;

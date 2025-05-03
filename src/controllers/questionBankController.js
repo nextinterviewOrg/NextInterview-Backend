@@ -101,3 +101,61 @@ exports.softDeleteQuestionBank = async (req, res) => {
     });
   }
 };
+exports.editQuestionBank = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const question= await QuestionBank.findById(id);
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: 'Question Bank not found',
+      })
+    }
+    if(question.question_type==="mcq" || question.question_type==="approach" ){
+     return res.status(400).json({
+       success: false,
+       message: 'Question Type must be single-line or multi-line',
+     })
+    }
+    const questionbank = await QuestionBank.findOneAndUpdate({ _id: id }, req.body, { new: true });
+    if (!questionbank) {
+      return res.status(404).json({
+        success: false,
+        message: 'Question Bank not found',
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Question Bank updated successfully',
+      questionbank: questionbank
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error updating Question Bank',
+      error: error.message,
+    });
+  }
+};
+
+exports.getQuestionBankByModuleCode = async (req, res) => {
+  try {
+    const { module_code } = req.params;
+    const questionbanks = await QuestionBank.find({ module_code: module_code });
+    if (!questionbanks.length) {
+      return res.status(404).json({ success: false, message: 'No Qusetion Banks found' });
+    }
+    return res.status(200).json({
+      success: true,
+      data: questionbanks,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching Question Banks',
+      error: error.message,
+    });
+  }
+};
