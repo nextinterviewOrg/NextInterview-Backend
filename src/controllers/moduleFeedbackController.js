@@ -221,14 +221,18 @@ function processFeedbackArray(feedbackArray, userMap, rating_order) {
 
 exports.getAllModuleFeedbacksRatings = async (req, res) => {
     try {
-        const moduleFeedbacks = await ModuleFeedback.find({}).populate("feedback_one.userId").populate("feedback_two.userId").lean();
+        const moduleFeedbacks = await ModuleFeedback.find({}).populate("moduleId").populate("feedback_one.userId").populate("feedback_two.userId").lean();
+        console.log("moduleFeedbacks", moduleFeedbacks);
         const AllFeedbacks = [];
         moduleFeedbacks.forEach((moduleFeedback) => {
+            console.log("moduleFeedback", moduleFeedback);  
             const userFeedbackMap = new Map();
+            let averageRating =0;
             processFeedbackArray(moduleFeedback.feedback_one, userFeedbackMap, 1);
             processFeedbackArray(moduleFeedback.feedback_two, userFeedbackMap, 2);
             const aggregatedFeedback = Array.from(userFeedbackMap.values());
-            const finalData = { module: moduleFeedback, submittedUserFeedbackCount: aggregatedFeedback.length, data: aggregatedFeedback };
+            averageRating=aggregatedFeedback.reduce((sum, item) => sum + item.averageRating, 0) / aggregatedFeedback.length;
+            const finalData = { module: moduleFeedback.moduleId, submittedUserFeedbackCount: aggregatedFeedback.length,averageRating, data: aggregatedFeedback };
             AllFeedbacks.push(finalData);
         });
 
