@@ -52,19 +52,23 @@ exports.createUser = async function (req, res) {
       const user = new User({
         clerkUserId: msg.data.id,
         user_name:
-          msg.data.first_name  || "Anonymous",
+          msg.data.first_name || "Anonymous",
         user_email: msg.data.email_addresses[0].email_address,
         user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
       });
       await user.save();
       console.log("User saved to database", user);
       // Add default public metadata
-      const updatedUser = await clerkClient.users.updateUser(msg.data.id, {
-        public_metadata: {
-          role: "user", // Example: Set default role
-          subscription: "free", // Example: Set default subscription type
-        },
-      });
+      if (!msg.data.public_metadata?.role == "admin") {
+
+
+        const updatedUser = await clerkClient.users.updateUser(msg.data.id, {
+          public_metadata: {
+            role: "user", // Example: Set default role
+            subscription: "free", // Example: Set default subscription type
+          },
+        });
+      }
       console.log("Updated user with metadata:", updatedUser);
       console.log("User saved to database");
     } else if (eventType === "user.updated") {
@@ -73,7 +77,7 @@ exports.createUser = async function (req, res) {
         { clerkUserId: msg.data.id },
         {
           user_name:
-            msg.data.first_name  || "Anonymous",
+            msg.data.first_name || "Anonymous",
           user_email: msg.data.email_addresses[0].email_address,
           user_phone_number: msg.data.phone_numbers[0]?.phone_number || null,
           user_role: msg.data.public_metadata.role || "user",
@@ -178,10 +182,10 @@ exports.createUserProfile = async function (req, res) {
         data_planned_interview_response || QuestionnaireData.data_planned_interview_response;
       await QuestionnaireData.save();
       // Update user fields only if they are provided
-      if (user_name){
-         user.user_name = user_name;
-         const updatedUser = await clerkClient.users.updateUser(user.clerkUserId, {
-          first_name:user_name,
+      if (user_name) {
+        user.user_name = user_name;
+        const updatedUser = await clerkClient.users.updateUser(user.clerkUserId, {
+          first_name: user_name,
         });
       }
       if (profile_pic) user.user_profile_pic = profile_pic;
@@ -223,12 +227,12 @@ exports.createUserProfile = async function (req, res) {
       }
 
       // Update user fields only if they are provided
-      if (user_name){
-         user.user_name = user_name;
-         const updatedUser = await clerkClient.users.updateUser(user.clerkUserId, {
-          first_name:user_name,
-         });
-        }
+      if (user_name) {
+        user.user_name = user_name;
+        const updatedUser = await clerkClient.users.updateUser(user.clerkUserId, {
+          first_name: user_name,
+        });
+      }
       if (profile_pic) user.user_profile_pic = profile_pic;
       if (user_linkedin_profile_link) {
         user.user_linkedin_profile_link = user_linkedin_profile_link;
@@ -475,9 +479,9 @@ exports.updateUser = async (req, res) => {
     });
   }
 };
-exports.getUserQuestionariesByUserId= async(req,res)=>{
+exports.getUserQuestionariesByUserId = async (req, res) => {
   try {
-    const {id}=req.params;
+    const { id } = req.params;
     const user = await Questionnaire.findOne({ user_id: id }).populate("user_id  data_past_interview_response.company_Name data_past_interview_response.designation data_past_interview_response.topics");
     if (!user) {
       return res.status(404).json({
@@ -487,7 +491,7 @@ exports.getUserQuestionariesByUserId= async(req,res)=>{
     }
     res.status(200).json({
       success: true,
-      data:  user ,
+      data: user,
     });
   } catch (err) {
     console.log(err);
@@ -502,7 +506,7 @@ exports.getUserQuestionariesByUserId= async(req,res)=>{
 exports.addPastInterview = async (req, res) => {
   try {
     const { user_id } = req.params;
-    const { date_attended,company_Name, designation, topics,what_went_well,what_went_bad } = req.body;
+    const { date_attended, company_Name, designation, topics, what_went_well, what_went_bad } = req.body;
     const user = await Questionnaire.findOne({ user_id: user_id });
     if (!user) {
       return res.status(404).json({
@@ -510,7 +514,7 @@ exports.addPastInterview = async (req, res) => {
         message: "User not found",
       });
     }
-    user.data_past_interview_response.push({date_attended, company_Name, designation, topics,what_went_well,what_went_bad });
+    user.data_past_interview_response.push({ date_attended, company_Name, designation, topics, what_went_well, what_went_bad });
     await user.save();
     res.status(200).json({
       success: true,
@@ -519,7 +523,7 @@ exports.addPastInterview = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      success: false, 
+      success: false,
       message: err.message,
     });
   }
@@ -564,6 +568,38 @@ exports.getUserIdBySession = async (req, res) => {
       success: false,
       message: "Error fetching user details",
       error: error.message,  // Include the error message for debugging
+    });
+  }
+};
+
+exports.createAdmins = async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    connectDB();
+    const secret = process.env.CLERK_WEBHOOK_SECRET_KEY_PROD;
+    const user = await clerkClient.users.createUser({
+      emailAddress: [email],
+      password: password,
+
+      firstName: name,  // optional
+
+      publicMetadata: {
+        // Add custom public metadata
+        role: 'admin',
+        signupSource: 'backend'
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin created successfully",
+      data: user,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: err.message,
     });
   }
 };

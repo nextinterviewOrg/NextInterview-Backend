@@ -1,7 +1,7 @@
 const e = require("express");
 const express = require("express");
 const router= express.Router();
-const { createUser, getUsers, createUserProfile, getUserByClerkId, lockUser, unlocklockUser, resetPassword, updateUser, getUserQuestionariesByUserId, addPastInterview, getUserIdBySession } = require("../controllers/userController");
+const { createUser, getUsers, createUserProfile, getUserByClerkId, lockUser, unlocklockUser, resetPassword, updateUser, getUserQuestionariesByUserId, addPastInterview, getUserIdBySession,createAdmins } = require("../controllers/userController");
 const bodyParser= require('body-parser');
 // const { ClerkExpressWithAuth } =require ('@clerk/clerk-sdk-node')
 const authorizeRole= require('../middleware/authorizeRole');
@@ -23,5 +23,6 @@ router.post("/resetPassword",resetPassword);
 router.post("/updateUser", upload.single('user_profile_pic'),updateUser);
 router.get("/userQuationaries/:id",getUserQuestionariesByUserId);
 router.post("/updateUser/addPastInterview/:user_id", addPastInterview);
-router.post("/getUserBySessionId",getUserIdBySession)
+router.post("/getUserBySessionId",getUserIdBySession);
+router.post("/createAdmins",createAdmins);
 module.exports = router;
