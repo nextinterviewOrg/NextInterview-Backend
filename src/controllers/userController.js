@@ -64,12 +64,13 @@ exports.createUser = async function (req, res) {
 
         const updatedUser = await clerkClient.users.updateUser(msg.data.id, {
           public_metadata: {
-            role: "user", // Example: Set default role
+            role: msg.data.public_metadata?.role || "user", // Example: Set default role
             subscription: "free", // Example: Set default subscription type
           },
         });
+        console.log("Updated user with metadata:", updatedUser);
       }
-      console.log("Updated user with metadata:", updatedUser);
+
       console.log("User saved to database");
     } else if (eventType === "user.updated") {
       console.log("user updated ", msg);
