@@ -1,6 +1,7 @@
 const UserTIYProgress = require("../Models/userTIYProgressModel");
 const TIYModel = require("../Models/TIYSchemaModel");
 const mongoose = require("mongoose");
+const NewModule = require("../Models/addNewModuleModel");
 
 exports.createUserTIYProgress = async (req, res) => {
     const session = await mongoose.startSession();
@@ -19,6 +20,11 @@ exports.createUserTIYProgress = async (req, res) => {
             await session.abortTransaction();
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
+        const module = await NewModule.findOne({ module_code: moduleId });
+        if (!module) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "Module not found" });
+        }
         const question = await TIYModel.findById(questionBankId);
         if (!question) {
             await session.abortTransaction();
@@ -30,15 +36,15 @@ exports.createUserTIYProgress = async (req, res) => {
             return res.status(400).json({ success: false, message: "Chosen option required for MCQ questions" });
         }
         let answerStatus = null;
-        if (question.question_type === 'mcq' ) {
+        if (question.question_type === 'mcq') {
             answerStatus = question.correct_option === choosen_option ? 'correct' : 'wrong';
         } else {
             answerStatus = question.answer === answer ? 'correct' : 'wrong';
         }
-        let moduleProgress = await UserTIYProgress.findOne({ moduleId }).session(session);
+        let moduleProgress = await UserTIYProgress.findOne({ moduleId: module._id }).session(session);
         if (!moduleProgress) {
             moduleProgress = new UserTIYProgress({
-                moduleId,
+                moduleId: module._id,
                 progress: [{
                     userId,
                     answered_Questions: [{
@@ -135,7 +141,12 @@ exports.checkUserAnsweredQuestion = async (req, res) => {
             await session.abortTransaction();
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
-        const moduleProgress = await UserTIYProgress.findOne({ moduleId }).session(session);
+        const module = await NewModule.findOne({ module_code: moduleId });
+        if (!module) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "Module not found" });
+        }
+        const moduleProgress = await UserTIYProgress.findOne({ moduleId: module._id }).session(session);
         if (!moduleProgress) {
             await session.abortTransaction();
             return res.status(404).json({ success: false, message: "Module not found" });

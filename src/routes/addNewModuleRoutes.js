@@ -20,5 +20,6 @@ router.get('/get/module/topic/subtopic/:moduleCode/:topicCode',addNewModuleContr
 router.delete("/softDelete/:id",addNewModuleController.softDeleteModule)
 router.post("/getModuleLastTopic",addNewModuleController.getModuleLastTopic);
 router.post("/getModuleTopicLastSubtopic",addNewModuleController.getModuleTopicLastSubtopic);
-router.get("/getModule/:moduleCode",addNewModuleController.getModuleByModuleCode)
+router.get("/getModule/:moduleCode",addNewModuleController.getModuleByModuleCode);
+router.get("/get/InterviewFavorites",addNewModuleController.getFavoriteTopics);
 module.exports = router;
