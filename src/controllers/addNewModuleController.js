@@ -452,4 +452,54 @@ exports.getModuleByModuleCode = async (req, res) => {
     })
   }
 };
+exports.getFavoriteTopics = async (req, res) => {
+  try {
+    const results = await NewModule.aggregate([
+      {
+        $project: {
+          _id: 1,  // Keep the module ID
+          imageURL: 1,
+          moduleName: 1,
+          module_code: 1,
+          topicData: {
+            $filter: {
+              input: "$topicData",
+              as: "topic",
+              cond: {
+                $gt: [
+                  {
+                    $size: {
+                      $filter: {
+                        input: "$$topic.subtopicData",
+                        as: "subtopic",
+                        cond: { $eq: ["$$subtopic.interviewFavorite", true] }
+                      }
+                    }
+                  },
+                  0
+                ]
+              }
+            }
+          }
+        }
+      },
+      { $unwind: "$topicData" },
+      {
+        $project: {
+          _id: 1,  // Hide original _id field
+          moduleId: { $toString: "$_id" },  // Convert ObjectId to string
+          imageURL: 1,
+          moduleName: 1,
+          module_code: 1,
+          topicName: "$topicData.topicName",
+          topic_code: "$topicData.topic_code"
+        }
+      }
+    ]);
+
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get favorite topics", error: error.message });
+  }
+};
 

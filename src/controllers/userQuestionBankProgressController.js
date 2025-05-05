@@ -1,6 +1,7 @@
 const UserQuestionBankProgress = require("../Models/userQuestionBankProgressModel");
 const QuestionBank = require("../Models/questionBankModel");
 const mongoose = require("mongoose");
+const NewModule = require("../Models/addNewModuleModel");
 
 exports.createUserQuestionBankProgress = async (req, res) => {
     const session = await mongoose.startSession();
@@ -19,6 +20,11 @@ exports.createUserQuestionBankProgress = async (req, res) => {
             await session.abortTransaction();
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
+        const module= await  NewModule.findOne({module_code:moduleId});
+        if (!module) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "Module not found" });
+        }
         const question = await QuestionBank.findById(questionBankId);
         if (!question) {
             await session.abortTransaction();
@@ -35,10 +41,10 @@ exports.createUserQuestionBankProgress = async (req, res) => {
         } else {
             answerStatus = question.answer === answer ? 'correct' : 'wrong';
         }
-        let moduleProgress = await UserQuestionBankProgress.findOne({ moduleId }).session(session);
+        let moduleProgress = await UserQuestionBankProgress.findOne({ moduleId: module._id }).session(session);
         if (!moduleProgress) {
             moduleProgress = new UserQuestionBankProgress({
-                moduleId,
+                moduleId: module._id,
                 progress: [{
                     userId,
                     answered_Questions: [{
@@ -132,7 +138,12 @@ exports.checkUserAnsweredQuestion = async (req, res) => {
             await session.abortTransaction();
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
-        const moduleProgress = await UserQuestionBankProgress.findOne({ moduleId }).session(session);
+        const module= await  NewModule.findOne({module_code:moduleId});
+        if (!module) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "Module not found" });
+        }
+        const moduleProgress = await UserQuestionBankProgress.findOne({moduleId: module._id }).session(session);
         if (!moduleProgress) {
             await session.abortTransaction();
             return res.status(404).json({ success: false, message: "Module not found" });
