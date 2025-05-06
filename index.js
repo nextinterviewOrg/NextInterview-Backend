@@ -3,7 +3,7 @@ const cors = require("cors");
 const connectDB = require("./src/config/dbConfig");
 require("dotenv").config();
 const { Webhook } = require("svix");
-const{setupCronJobs} = require("./src/jobs/runJobs");
+const { setupCronJobs } = require("./src/jobs/runJobs");
 const app = express();
 app.use(express.json());
 // app.use(cors());
@@ -27,20 +27,7 @@ app.use(cors(corsOptions));
 //   // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
 // }));
 
-connectDB()
-  .then(() => {
-    console.log("Connected to MongoDB");
-
-    // Start the Server
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1); // Exit process with failure
-  });
+ 
 
 setupCronJobs();
 const notificationRoutes = require("./src/routes/notificationRoutes");
@@ -50,7 +37,7 @@ const designationRoutes = require("./src/routes/designationRoutes");
 const companyDataRoutes = require("./src/routes/companyDataRoutes");
 const questionnaireRoutes = require("./src/routes/questionnaireRoutes");
 const topicRoutes = require("./src/routes/topicRoutes");
-const interviewRoutes= require("./src/routes/interviewRoundRoutes");
+const interviewRoutes = require("./src/routes/interviewRoundRoutes");
 const addNewModuleRoutes = require("./src/routes/addNewModuleRoutes");
 // Flash Card Routes
 const aiFlashCardRoutes = require("./src/routes/aiFlashCardRoutes");
@@ -83,13 +70,14 @@ const userFeedbackRoutes = require("./src/routes/userFeedbackRoutes");
 const moduleFeedbackRoutes = require("./src/routes/moduleFeedbackRoutes");
 const userQuestionBankProgressRoutes = require("./src/routes/userQuestionBankProgressRoutes");
 const userTIYProgressRoutes = require("./src/routes/userTIYRoutes");
+const sampleInterviewFeedbackRoutes = require("./src/routes/sampleInterviewFeedbackRoute");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
 app.use("/designation", designationRoutes);
 app.use("/companyData", companyDataRoutes);
 app.use("/questionnaire", questionnaireRoutes);
-app.use("/topic", topicRoutes); 
+app.use("/topic", topicRoutes);
 app.use("/interviewRound", interviewRoutes);
 app.use("/addNewModule", addNewModuleRoutes);
 // Flash Cards URI
@@ -102,7 +90,7 @@ app.use("/questionBank", questionBankRoutes);
 app.use("/faq", faqRoutes);
 app.use("/supportQuery", supportQueryRoutes);
 
-app.use("/corn",cornRoutes);
+app.use("/corn", cornRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/skillAssessment", skillAssessmentRoutes);
 // ChatGPT URI
@@ -119,7 +107,8 @@ app.use("/userSkillAssessmentProgress", userSkillAssessmentProgressRoutes);
 app.use("/blog", blogRoutes);
 app.use("/reminder", reminderRoutes);
 
-app.use("/feedback", userFeedbackRoutes); 
+app.use("/feedback", userFeedbackRoutes);
 app.use("/moduleFeedback", moduleFeedbackRoutes);
 app.use("/userQuestionBankProgress", userQuestionBankProgressRoutes);
 app.use("/userTIYProgress", userTIYProgressRoutes);
+app.use("/sampleInterviewFeedback", sampleInterviewFeedbackRoutes);
