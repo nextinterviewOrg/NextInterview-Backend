@@ -27,7 +27,20 @@ app.use(cors(corsOptions));
 //   // allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
 // }));
 
- 
+connectDB()
+  .then(() => {
+    console.log("Connected to MongoDB");
+
+    // Start the Server
+    const PORT = process.env.PORT;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+    process.exit(1); // Exit process with failure
+  });
 
 setupCronJobs();
 const notificationRoutes = require("./src/routes/notificationRoutes");
@@ -112,3 +125,8 @@ app.use("/moduleFeedback", moduleFeedbackRoutes);
 app.use("/userQuestionBankProgress", userQuestionBankProgressRoutes);
 app.use("/userTIYProgress", userTIYProgressRoutes);
 app.use("/sampleInterviewFeedback", sampleInterviewFeedbackRoutes);
+
+
+
+
+
