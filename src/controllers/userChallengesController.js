@@ -1,0 +1,343 @@
+const UserChallenges = require("../Models/userChallengesModel");
+const UserChallengesProgress = require("../Models/userChallengesProgresModel");
+const mongoose = require("mongoose");
+
+// Create a new challenge
+exports.createChallenge = async (req, res) => {
+  try {
+    const {
+      programming_language,
+      QuestionText,
+      description,
+      input,
+      output,
+      difficulty,
+      hints = []
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !programming_language ||
+      !QuestionText ||
+      !description ||
+      !input ||
+      !output ||
+      !difficulty
+    ) {
+      return res.status(400).json({ 
+        success: false,
+        message: "All fields are required" 
+      });
+    }
+    if (hints && Array.isArray(hints)) {
+        for (const hint of hints) {
+          if (!hint.hint_text) {
+            return res.status(400).json({
+              success: false,
+              message: "Each hint must have at least a hint_text field"
+            });
+          }
+        }
+      }
+
+    const newChallenge = new UserChallenges({
+      programming_language,
+      QuestionText,
+      description,
+      input,
+      output,
+      difficulty,
+      hints
+    });
+
+    const savedChallenge = await newChallenge.save();
+    res.status(201).json({
+      success: true,
+      message: "Challenge created successfully",
+      data: savedChallenge
+    });
+  } catch (error) {
+    console.error("Error creating challenge:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error while creating challenge",
+      error: error.message 
+    });
+  }
+};
+
+// Get all challenges
+exports.getAllChallenges = async (req, res) => {
+  try {
+    const challenges = await UserChallenges.find().sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      message: "Challenges retrieved successfully",
+      data: challenges
+    });
+  } catch (error) {
+    console.error("Error fetching challenges:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error while fetching challenges",
+      error: error.message 
+    });
+  }
+};
+
+// Get a single challenge by ID
+exports.getChallengeById = async (req, res) => {
+  try {
+    const challenge = await UserChallenges.findById(req.params.id);
+    if (!challenge) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Challenge not found" 
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Challenge retrieved successfully",
+      data: challenge
+    });
+  } catch (error) {
+    console.error("Error fetching challenge:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error while fetching challenge",
+      error: error.message 
+    });
+  }
+};
+
+// Update a challenge
+exports.updateChallenge = async (req, res) => {
+  try {
+    const {
+      programming_language,
+      QuestionText,
+      description,
+      input,
+      output,
+      difficulty,
+      hints,
+    } = req.body;
+
+    const updatedChallenge = await UserChallenges.findByIdAndUpdate(
+      req.params.id,
+      {
+        programming_language,
+        QuestionText,
+        description,
+        input,
+        output,
+        difficulty,
+        hints,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedChallenge) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Challenge not found" 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Challenge updated successfully",
+      data: updatedChallenge
+    });
+  } catch (error) {
+    console.error("Error updating challenge:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error while updating challenge",
+      error: error.message 
+    });
+  }
+};
+
+// Delete a challenge
+exports.deleteChallenge = async (req, res) => {
+  try {
+    const deletedChallenge = await UserChallenges.findByIdAndDelete(
+      req.params.id
+    );
+    if (!deletedChallenge) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Challenge not found" 
+      });
+    }
+    res.status(200).json({ 
+      success: true,
+      message: "Challenge deleted successfully",
+      data: deletedChallenge
+    });
+  } catch (error) {
+    console.error("Error deleting challenge:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error while deleting challenge",
+      error: error.message 
+    });
+  }
+};
+
+exports.getTodaysChallengesWithStatus = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required"
+            });
+        }
+
+        // Get today's date boundaries
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Get today's challenges
+        const todaysChallenges = await UserChallenges.find({
+            uploaded_date: {
+                $gte: today,
+                $lt: tomorrow
+            }
+        });
+
+        if (todaysChallenges.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No challenges found for today",
+                data: []
+            });
+        }
+
+        // Get all question IDs for today's challenges
+        const questionIds = todaysChallenges.map(challenge => challenge._id);
+
+        // Get user progress for these questions
+        const userProgress = await UserChallengesProgress.find({
+            questionId: { $in: questionIds },
+            "progress.userId": userId
+        });
+
+        // Create a map of questionId to user progress for quick lookup
+        const progressMap = new Map();
+        userProgress.forEach(doc => {
+            const userProg = doc.progress.find(p => p.userId.toString() === userId.toString());
+            if (userProg) {
+                progressMap.set(doc.questionId.toString(), {
+                    status: userProg.skip ? "skipped" : 
+                           userProg.answer ? "answered" : "attempted",
+                    answer: userProg.answer,
+                    finalResult: userProg.finalResult,
+                    timestamp: userProg.timestamp
+                });
+            }
+        });
+
+        // Combine challenge data with user status
+        const challengesWithStatus = todaysChallenges.map(challenge => {
+            const progress = progressMap.get(challenge._id.toString());
+            return {
+                ...challenge.toObject(),
+                userStatus: progress ? progress.status : "not attempted",
+                answer: progress ? progress.answer : null,
+                finalResult: progress ? progress.finalResult : null,
+                lastAttempted: progress ? progress.timestamp : null
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Today's challenges with user status retrieved successfully",
+            data: challengesWithStatus
+        });
+
+    } catch (error) {
+        console.error("Error getting today's challenges:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error while retrieving today's challenges",
+            error: error.message
+        });
+    }
+};
+
+exports.getAllChallengesWithUserResults = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID"
+            });
+        }
+
+        // Get all challenges
+        const allChallenges = await UserChallenges.find().sort({ uploaded_date: -1 });
+
+        // Get all question IDs
+        const questionIds = allChallenges.map(challenge => challenge._id);
+
+        // Get user progress for these questions
+        const userProgress = await UserChallengesProgress.find({
+            questionId: { $in: questionIds },
+            "progress.userId": userId
+        });
+
+        // Create a progress map for quick lookup
+        const progressMap = new Map();
+        userProgress.forEach(doc => {
+            const userProg = doc.progress.find(p => p.userId.toString() === userId.toString());
+            if (userProg) {
+                progressMap.set(doc.questionId.toString(), {
+                    status: userProg.skip ? "skipped" : 
+                           userProg.answer ? "attempted" : "viewed",
+                    answer: userProg.answer,
+                    isCorrect: userProg.finalResult,
+                    timestamp: userProg.timestamp
+                });
+            }
+        });
+
+        // Combine challenge data with user results
+        const challengesWithResults = allChallenges.map(challenge => {
+            const progress = progressMap.get(challenge._id.toString());
+            
+            return {
+                challengeId: challenge._id,
+                programming_language: challenge.programming_language,
+                questionText: challenge.QuestionText,
+                description: challenge.description,
+                difficulty: challenge.difficulty,
+                userStatus: progress ? progress.status : "not attempted",
+                isCorrect: progress ? progress.isCorrect : null,
+                lastAttempted: progress ? progress.timestamp : null,
+                hints: challenge.hints
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "All challenges with user results retrieved successfully",
+            data: challengesWithResults
+        });
+
+    } catch (error) {
+        console.error("Error getting challenges with user results:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error while retrieving challenges with user results",
+            error: error.message
+        });
+    }
+};

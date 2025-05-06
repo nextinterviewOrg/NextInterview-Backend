@@ -84,6 +84,8 @@ const moduleFeedbackRoutes = require("./src/routes/moduleFeedbackRoutes");
 const userQuestionBankProgressRoutes = require("./src/routes/userQuestionBankProgressRoutes");
 const userTIYProgressRoutes = require("./src/routes/userTIYRoutes");
 const sampleInterviewFeedbackRoutes = require("./src/routes/sampleInterviewFeedbackRoute");
+const userChallengesRoutes = require("./src/routes/userChallengesRoutes");
+const userChallengesProgressRoutes = require("./src/routes/userChallengesProgressRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -125,6 +127,8 @@ app.use("/moduleFeedback", moduleFeedbackRoutes);
 app.use("/userQuestionBankProgress", userQuestionBankProgressRoutes);
 app.use("/userTIYProgress", userTIYProgressRoutes);
 app.use("/sampleInterviewFeedback", sampleInterviewFeedbackRoutes);
+app.use("/userChallenges", userChallengesRoutes);
+app.use("/userChallengesProgress", userChallengesProgressRoutes);
 
 
 
