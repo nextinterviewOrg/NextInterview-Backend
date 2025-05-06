@@ -1,5 +1,6 @@
 const UserProgress = require("../Models/userProgressModel");
 const ModuleProgress = require("../Models/moduleProgressModel");
+const NewModule = require("../Models/addNewModuleModel");
 
 exports.startModule = async (req, res) => {
   try {
@@ -600,5 +601,119 @@ exports.getUserCompletedModules = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching user completed modules", error: error.message });
+  }
+};
+exports.checkSubtopicCompletion = async (req, res) => {
+  const { userId, moduleCode, topicCode } = req.params;
+
+  try {
+    const userProgress = await UserProgress.findOne({
+      userId,
+      "progress.moduleCode": moduleCode
+    });
+    const module = await NewModule.findOne({ module_code: moduleCode });
+    if (!module) {
+      return res.status(404).json({ message: "Module not found" });
+    }
+
+    const topic = module.topicData.find(t => t.topic_code === topicCode);
+    if (!topic) {
+      return res.status(404).json({ message: "Topic not found" });
+    }
+    const subtopicNumber = topic.subtopicData.length;
+    const subtopicCodes = topic.subtopicData.map(s => s.subtopic_code);
+
+    if (!userProgress) {
+      return res.status(404).json({ message: "User progress not found" });
+    }
+
+    const moduleProgress = userProgress.progress.find(
+      p => p.moduleCode === moduleCode
+    );
+
+    if (!moduleProgress) {
+      return res.status(404).json({ message: "Module progress not found" });
+    }
+
+    const topicProgress = moduleProgress.progressTopics.find(
+      t => t.topicCode === topicCode
+    );
+
+    if (!topicProgress) {
+      return res.status(404).json({ message: "Topic progress not found" });
+    }
+
+    const allCompleted = topicProgress.progressSubtopics.every(
+      subtopic => subtopic.status === 'completed'
+    );
+    const subtopicCompleted=topicProgress.progressSubtopics.filter(s => s.status === 'completed');
+
+    res.status(200).json({
+      moduleCode,
+      topicCode,
+      allSubtopicCompleted: subtopicCompleted.length === subtopicNumber,
+      completedCount: topicProgress.progressSubtopics.filter(s => s.status === 'completed').length,
+      totalSubtopics: topicProgress.progressSubtopics.length
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.checkAllTopicsCompletion = async (req, res) => {
+  const { userId, moduleCode } = req.params;
+
+  try {
+    // Get module structure
+    const module = await NewModule.findOne({ module_code: moduleCode });
+    if (!module) {
+      return res.status(404).json({ message: "Module not found" });
+    }
+
+    // Get user progress
+    const userProgress = await UserProgress.findOne({
+      userId,
+      "progress.moduleCode": moduleCode
+    });
+
+    if (!userProgress) {
+      return res.status(200).json({
+        moduleCode,
+        allTopicsCompleted: false,
+        completedTopics: 0,
+        totalTopics: module.topicData.length
+      });
+    }
+
+    const moduleProgress = userProgress.progress.find(
+      p => p.moduleCode === moduleCode
+    );
+
+    // Check if all topics in the module are completed
+    const allTopicsCompleted = module.topicData.every(modTopic => {
+      const userTopic = moduleProgress?.progressTopics.find(
+        t => t.topicCode === modTopic.topic_code
+      );
+      
+      return userTopic?.status === 'completed' && 
+             userTopic.progressSubtopics.every(s => s.status === 'completed');
+    });
+
+    const completedTopics = moduleProgress?.progressTopics.filter(
+      t => t.status === 'completed' && 
+          t.progressSubtopics.every(s => s.status === 'completed')
+    ).length || 0;
+ 
+
+    res.status(200).json({
+      moduleCode,
+      allTopicsCompleted : completedTopics === module.topicData.length,
+      completedTopics,
+      totalTopics: module.topicData.length,
+      moduleCompleted: moduleProgress?.status === 'completed'
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

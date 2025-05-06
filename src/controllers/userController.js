@@ -605,3 +605,41 @@ exports.createAdmins = async (req, res) => {
     });
   }
 };
+
+exports.deleteAdmins = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    connectDB();
+    const secret = process.env.CLERK_WEBHOOK_SECRET_KEY_PROD;
+    const user = await User.findById( userId);
+    const deletedUser = await clerkClient.users.deleteUser(user.clerkUserId);
+    return res.status(200).json({
+      success: true,
+      message: "Admin deleted successfully",
+      data: deletedUser,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+exports.getAllAdmins= async (req,res) => {
+  try {
+    const admins = await User.find({ user_role: 'admin' });
+    return res.status(200).json({
+      success: true,
+      message: "Admins fetched successfully",
+      data: admins,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+}
