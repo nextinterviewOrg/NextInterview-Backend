@@ -355,7 +355,7 @@ exports.completeSubtopic = async (req, res) => {
     const subtopic = topic.progressSubtopics.find(
       (sub) => sub.subtopicCode === subtopicCode
     );
- 
+
     if (!subtopic) {
       return res.status(404).json({ message: "Subtopic not found" });
     }
@@ -646,7 +646,7 @@ exports.checkSubtopicCompletion = async (req, res) => {
     const allCompleted = topicProgress.progressSubtopics.every(
       subtopic => subtopic.status === 'completed'
     );
-    const subtopicCompleted=topicProgress.progressSubtopics.filter(s => s.status === 'completed');
+    const subtopicCompleted = topicProgress.progressSubtopics.filter(s => s.status === 'completed');
 
     res.status(200).json({
       moduleCode,
@@ -694,23 +694,150 @@ exports.checkAllTopicsCompletion = async (req, res) => {
       const userTopic = moduleProgress?.progressTopics.find(
         t => t.topicCode === modTopic.topic_code
       );
-      
-      return userTopic?.status === 'completed' && 
-             userTopic.progressSubtopics.every(s => s.status === 'completed');
+
+      return userTopic?.status === 'completed' &&
+        userTopic.progressSubtopics.every(s => s.status === 'completed');
     });
 
     const completedTopics = moduleProgress?.progressTopics.filter(
-      t => t.status === 'completed' && 
-          t.progressSubtopics.every(s => s.status === 'completed')
+      t => t.status === 'completed' &&
+        t.progressSubtopics.every(s => s.status === 'completed')
     ).length || 0;
- 
+
 
     res.status(200).json({
       moduleCode,
-      allTopicsCompleted : completedTopics === module.topicData.length,
+      allTopicsCompleted: completedTopics === module.topicData.length,
       completedTopics,
       totalTopics: module.topicData.length,
       moduleCompleted: moduleProgress?.status === 'completed'
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getUserCompletedOngoingModules = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ message: "UserId is required" });
+    }
+
+    const userProgress = await UserProgress.findOne({ userId });
+
+    if (!userProgress) {
+      return res.status(200).json({ success: false, message: "User progress not found" });
+    }
+
+    const completedModules = userProgress.progress
+      .filter((mod) => mod.completed === true || mod.status === 'ongoing')
+      .map((mod) => ({
+        moduleCode: mod.moduleCode,
+        moduleId: mod.moduleID,
+      }));
+    console.log(completedModules);
+
+    res.status(200).json({ success: true, message: "User completed modules fetched successfully", data: completedModules });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching user completed modules", error: error.message });
+  }
+};
+
+exports.getCompletedOngoingTopics = async (req, res) => {
+  const { userId, moduleCode } = req.params;
+
+  try {
+    // Get module structure
+    const module = await NewModule.findOne({ module_code: moduleCode });
+    if (!module) {
+      return res.status(404).json({ message: "Module not found" });
+    }
+
+    // Get user progress
+    const userProgress = await UserProgress.findOne({
+      userId,
+      "progress.moduleCode": moduleCode
+    });
+
+    if (!userProgress) {
+      return res.status(200).json({
+        moduleCode,
+        allTopicsCompleted: false,
+        completedTopics: 0,
+        completedOngoingTopics: [],
+      });
+    }
+
+    const moduleProgress = userProgress.progress.find(
+      p => p.moduleCode === moduleCode
+    );
+
+    let completedOngoingTopics= moduleProgress?.progressTopics.filter(
+      t => (t.status === 'ongoing'&&(t.progressSubtopics.some(s => s.status === 'completed')))|| t.status === 'completed'
+    )
+    completedOngoingTopics=completedOngoingTopics.map(t=>t.topicCode);
+    
+
+    res.status(200).json({
+      moduleCode,
+      totalTopics: module.topicData.length,
+      moduleCompleted: moduleProgress?.status === 'completed',
+      completedOngoingTopics
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.getCompletedOngoingSubtopics = async (req, res) => {
+  const { userId, moduleCode } = req.params;
+
+  try {
+    // Get module structure
+    const module = await NewModule.findOne({ module_code: moduleCode });
+    if (!module) {
+      return res.status(404).json({ message: "Module not found" });
+    }
+
+    // Get user progress
+    const userProgress = await UserProgress.findOne({
+      userId,
+      "progress.moduleCode": moduleCode
+    });
+
+    if (!userProgress) {
+      return res.status(200).json({
+        moduleCode,
+        allTopicsCompleted: false,
+        completedTopics: 0,
+        completedOngoingTopics: [],
+      });
+    }
+
+    const moduleProgress = userProgress.progress.find(
+      p => p.moduleCode === moduleCode
+    );
+
+    let completedOngoingTopics= moduleProgress?.progressTopics.filter(
+      t => t.status === 'ongoing'|| t.status === 'completed'
+    )
+    let completedSubtopics=[];
+    completedOngoingTopics.forEach(topic=>{
+      completedSubtopics.push(...topic.progressSubtopics.filter(s=>s.status === 'ongoing' || s.status === 'completed'))
+    })
+    let completedOngoingSubtopics=completedSubtopics.filter(s=>s.status === 'completed');
+    completedOngoingSubtopics=completedOngoingSubtopics.map(t=>t.subtopicCode);
+    
+
+    res.status(200).json({
+      moduleCode,
+      totalTopics: module.topicData.length,
+      moduleCompleted: moduleProgress?.status === 'completed',
+      completedOngoingSubtopics
     });
 
   } catch (error) {
