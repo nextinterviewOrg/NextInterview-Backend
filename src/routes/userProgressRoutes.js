@@ -13,7 +13,10 @@ const {
     getUserProgressByTopicCode,
     getUserCompletedModules,
     checkSubtopicCompletion,
-    checkAllTopicsCompletion
+    checkAllTopicsCompletion,
+    getUserCompletedOngoingModules,
+    getCompletedOngoingTopics,
+    getCompletedOngoingSubtopics
 } = require("../controllers/userProgressController");
 
 
@@ -36,4 +39,7 @@ router.post("/getprogressByUserSubtopic", getUserProgressBySubtopicCode);
 router.get("/get/moduleCompleted/:userId", getUserCompletedModules);
 router.get("/progress/:userId/subtopics/:moduleCode/:topicCode", checkSubtopicCompletion);
 router.get("/progress/:userId/topics/:moduleCode", checkAllTopicsCompletion);
+router.get("/get/moduleOngoingCompleted/:userId", getUserCompletedOngoingModules);
+router.get("/get/ongoingComletedTopic/:userId/:moduleCode", getCompletedOngoingTopics);
+router.get("/get/ongoingComletedSubtopic/:userId/:moduleCode", getCompletedOngoingSubtopics);
 module.exports = router;
