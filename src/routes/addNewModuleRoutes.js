@@ -22,4 +22,6 @@ router.post("/getModuleLastTopic",addNewModuleController.getModuleLastTopic);
 router.post("/getModuleTopicLastSubtopic",addNewModuleController.getModuleTopicLastSubtopic);
 router.get("/getModule/:moduleCode",addNewModuleController.getModuleByModuleCode);
 router.get("/get/InterviewFavorites",addNewModuleController.getFavoriteTopics);
+router.get("/moduleTopics/:moduleId", addNewModuleController.getModuleDetailsByCode);
+
 module.exports = router;

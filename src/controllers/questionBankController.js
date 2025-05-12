@@ -1,5 +1,7 @@
 const QuestionBank = require("../Models/questionBankModel");
-
+const mongoose = require("mongoose");
+const UserQuestionBankProgress = require("../Models/userQuestionBankProgressModel");
+const NewModule = require("../Models/addNewModuleModel");
 // Creation of New Modules
 
 
@@ -149,6 +151,35 @@ exports.getQuestionBankByModuleCode = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: questionbanks,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching Question Banks',
+      error: error.message,
+    });
+  }
+};
+exports.getQuestionBankByModuleCodeAndUserResponse = async (req, res) => {
+  try {
+    const { module_code,userId } = req.params;
+    const module= await NewModule.findOne({ module_code: module_code });
+    let questionbanks = await QuestionBank.find({ module_code: module_code });
+    const questionbankStatus = await Promise.all( questionbanks.map(async(questionbank) => {
+      const userModuleProgress = await UserQuestionBankProgress.findOne({
+        moduleId: module._id,
+      });
+      const userQuestionBankProgress = userModuleProgress.progress.find(p => p.userId.equals(userId));
+      return ({...questionbank._doc,attempted:(userQuestionBankProgress,userQuestionBankProgress?.answered_Questions.find(p =>{ console.log("gghgh",p.questionBankId," ",questionbank._id); return new mongoose.Types.ObjectId(p.questionBankId).equals(questionbank._id);})? true : false)});
+      // return questionbank;
+    }))
+    if (!questionbanks.length) {
+      return res.status(404).json({ success: false, message: 'No Qusetion Banks found' });
+    }
+    return res.status(200).json({
+      success: true,
+      data: questionbankStatus,
     });
   } catch (error) {
     console.error(error);
