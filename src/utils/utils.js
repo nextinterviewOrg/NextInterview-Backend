@@ -43,9 +43,9 @@ async function processChallengesCSV(filePath, DataModel) {
   });
 }
 
-async function processQuestionBankCSV(filePath, DataModel,mc,tc,sc) {
+async function processQuestionBankCSV(filePath, DataModel, mc, tc, sc) {
   const records = [];
-  console.log("mc,tc,sc",mc,tc,sc)
+  console.log("mc,tc,sc", mc, tc, sc)
 
   return new Promise((resolve, reject) => {
     fs.createReadStream(filePath)
@@ -53,9 +53,9 @@ async function processQuestionBankCSV(filePath, DataModel,mc,tc,sc) {
       .on("data", (row) => {
         const data = {
           module_code: mc,
-          topic_code:tc,
+          topic_code: tc,
           subtopic_code: sc,
-          question_type:row.question_type,
+          question_type: row.question_type,
           level: row.level,
           question: row.question,
           answer: row.answer,
@@ -86,9 +86,9 @@ async function processQuestionBankCSV(filePath, DataModel,mc,tc,sc) {
   });
 }
 
-async function processSkillAssessmentCSV(filePath, DataModel,mc,tc,sc) {
+async function processSkillAssessmentCSV(filePath, DataModel, mc, tc, sc) {
   const records = [];
-  console.log("mc,tc,sc",mc,tc,sc)
+  console.log("mc,tc,sc", mc, tc, sc)
 
 
   return new Promise((resolve, reject) => {
@@ -97,9 +97,9 @@ async function processSkillAssessmentCSV(filePath, DataModel,mc,tc,sc) {
       .on("data", (row) => {
         const data = {
           module_code: mc,
-          topic_code:tc,
+          topic_code: tc,
           subtopic_code: sc,
-          question_type:row.question_type,
+          question_type: row.question_type,
           level: row.level,
           question: row.question,
           answer: row.answer,
@@ -110,10 +110,10 @@ async function processSkillAssessmentCSV(filePath, DataModel,mc,tc,sc) {
           correct_option: row.correct_option,
         };
         records.push(data);
-        console.log("data",data)
+        console.log("data", data)
       })
       .on("end", () => {
-        console.log("records",records)
+        console.log("records", records)
         DataModel.insertMany(records)
           .then((result) => {
             console.log("CSV data inserted into MongoDB-SkillAssessment");
@@ -132,7 +132,7 @@ async function processSkillAssessmentCSV(filePath, DataModel,mc,tc,sc) {
   });
 }
 
-async function processTIYCSV(filePath, DataModel,mc,tc,sc) {
+async function processTIYCSV(filePath, DataModel, mc, tc, sc) {
   const records = [];
 
   return new Promise((resolve, reject) => {
@@ -141,9 +141,9 @@ async function processTIYCSV(filePath, DataModel,mc,tc,sc) {
       .on("data", (row) => {
         const data = {
           module_code: mc,
-          topic_code:tc,
+          topic_code: tc,
           subtopic_code: sc,
-          question_type:row.question_type,
+          question_type: row.question_type,
           level: row.level,
           question: row.question,
           answer: row.answer,
@@ -172,9 +172,56 @@ async function processTIYCSV(filePath, DataModel,mc,tc,sc) {
       });
   });
 }
+async function processMainQuestionBankCSV(filePath, DataModel,) {
+  const records = [];
+  console.log("filePath", filePath)
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csvParser())
+      .on("data", (row) => {
+        const data = {
+          sno: row.sno,
+          module_code: row.module_code,
+          topic_code: row.topic_code,
+          level: row.level,
+          type: row.type,
+          question_type: row.question_type,
+          reference: row.reference,
+          question: row.question,
+          answer: row.answer,
+          mcq_question: row.mcq_question,
+          option_a: row.option_a,
+          option_b: row.option_b,
+          option_c: row.option_c,
+          option_d: row.option_d,
+          correct_option: row.correct_option,
+          time_duration: row.time_duration,
+          isTIYQustion: row.isTIYQustion === 'TRUE' ? true : false,
+          isQuestionBank: row.isQuestionBank === 'TRUE' ? true : false
+        };
+        records.push(data);
+      })
+      .on("end", () => {
+        DataModel.insertMany(records)
+          .then(() => {
+            console.log("CSV data inserted into MongoDB");
+            resolve();
+          })
+          .catch((err) => {
+            console.error("Error inserting data into MongoDB:", err);
+            reject(err);
+          });
+      })
+      .on("error", (err) => {
+        console.error("Error reading CSV file:", err);
+        reject(err);
+      });
+  });
+}
 module.exports = {
   processChallengesCSV,
   processQuestionBankCSV,
   processSkillAssessmentCSV,
   processTIYCSV,
+  processMainQuestionBankCSV
 };

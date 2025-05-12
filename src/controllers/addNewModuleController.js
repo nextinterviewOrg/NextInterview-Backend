@@ -502,4 +502,49 @@ exports.getFavoriteTopics = async (req, res) => {
     res.status(500).json({ message: "Failed to get favorite topics", error: error.message });
   }
 };
+exports.getModuleDetailsByCode = async (req, res) => {
+  try {
+    const { moduleId } = req.params; // Assuming module_code is passed as a URL parameter
+    
+    // Find the module by code, excluding deleted modules
+    const module = await NewModule.findOne(
+      { _id: moduleId, isDeleted: false },
+      { 
+        moduleName: 1,
+        module_code: 1,
+        "topicData.topicName": 1,
+        "topicData.topic_code": 1,
+        _id: 0 // Exclude the default _id field
+      }
+    );
 
+    if (!module) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found or has been deleted",
+      });
+    }
+
+    // Format the response to include only what's needed
+    const response = {
+      moduleName: module.moduleName,
+      module_code: module.module_code,
+      topics: module.topicData.map(topic => ({
+        topicName: topic.topicName,
+        topic_code: topic.topic_code
+      }))
+    };
+
+    res.status(200).json({
+      success: true,
+      data: response,
+    });
+  } catch (error) {
+    console.error("Error fetching module details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};

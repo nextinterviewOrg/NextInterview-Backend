@@ -9,6 +9,7 @@ router.get("/get/:id",questionBankController.getQuestionBankByID);
 router.delete("/softDelete/:id",questionBankController.softDeleteQuestionBank);
 router.put("/edit/:id",questionBankController.editQuestionBank);
 router.get("/get/module/:module_code",questionBankController.getQuestionBankByModuleCode);
+router.get("/get/moduleUserResponse/:module_code/:userId",questionBankController.getQuestionBankByModuleCodeAndUserResponse);
 
 
 module.exports = router;
