@@ -170,7 +170,8 @@ exports.checkUserAnsweredQuestion = async (req, res) => {
         await session.commitTransaction();
         res.status(200).json({
             success: true,
-            message: "Question already answered by user"
+            message: "Question already answered by user",
+            data:existingQuestion
         });
     } catch (err) {
         await session.abortTransaction();

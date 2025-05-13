@@ -1,14 +1,21 @@
 const UserChallengesProgress = require("../Models/userChallengesProgresModel");
-
+const UserChallenges = require("../Models/userChallengesModel");
 // Add or update user response
 exports.addOrUpdateUserResponse = async (req, res) => {
     try {
-        const { questionId, userId, answer, finalResult, skip } = req.body;
+        const { questionId, userId, answer, finalResult, choosen_option,skip } = req.body;
 
         if (!questionId || !userId) {
             return res.status(400).json({
                 success: false,
                 message: "questionId and userId are required"
+            });
+        }
+        const question = await UserChallenges.findById(questionId);
+        if (!question) {
+            return res.status(404).json({
+                success: false,
+                message: "Question not found"
             });
         }
 
@@ -29,7 +36,8 @@ exports.addOrUpdateUserResponse = async (req, res) => {
     
             progressDoc.progress.push({
                 userId,
-                answer: answer || "",
+                choosen_option:question.question_type === "mcq" ? choosen_option :null,
+                answer:question.question_type === "mcq" ? null : answer || "",
                 finalResult: finalResult || false,
                 skip: skip || false
             });
