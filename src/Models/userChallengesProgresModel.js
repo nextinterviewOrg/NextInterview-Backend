@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { CompletionChoice } = require("svix");
 
 const userChallengesProgressSchema = new mongoose.Schema({
     questionId: {
@@ -11,6 +12,10 @@ const userChallengesProgressSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+        choosen_option: {
+            type: String,
+            required: false
         },
         answer: {
             type: String,
