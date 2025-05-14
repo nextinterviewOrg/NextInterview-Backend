@@ -88,6 +88,10 @@ const userChallengesRoutes = require("./src/routes/userChallengesRoutes");
 const userChallengesProgressRoutes = require("./src/routes/userChallengesProgressRoutes");
 const mainQuestionBankRoutes = require("./src/routes/mainQuestionBankRoutes");
 const mainQuestionBankProgressRoutes = require("./src/routes/userMainQuestionBankProgressRoutes");
+const tiyQbQuestionRoutes = require("./src/routes/tiyQbCodingQuestionRoutes");
+const tiyQbCodingProgressRoutes = require("./src/routes/tiyQbCodingQuestionProgressRoutes");  
+
+
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
 app.use("/designation", designationRoutes);
@@ -132,6 +136,8 @@ app.use("/userChallenges", userChallengesRoutes);
 app.use("/userChallengesProgress", userChallengesProgressRoutes);
 app.use("/mainQuestionBank", mainQuestionBankRoutes);
 app.use("/mainQuestionBankProgress", mainQuestionBankProgressRoutes);
+app.use("/tiyQbQuestion", tiyQbQuestionRoutes); 
+app.use("/tiyQbCodingProgress", tiyQbCodingProgressRoutes);
 
 
 

@@ -433,6 +433,7 @@ exports.getAllChallengesWithUserResults = async (req, res) => {
   try {
     const{question_type} = req.query;
     const { userId } = req.params;
+    console.log("userId", userId,"question_type",question_type);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -442,17 +443,18 @@ exports.getAllChallengesWithUserResults = async (req, res) => {
     }
 
     // Get all challenges
-    const allChallenges = await UserChallenges.find().sort({ uploaded_date: -1 });
+    const allChallenges = await UserChallenges.find({question_type: question_type}).sort({ uploaded_date: -1 });
 
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
+    console.log("questionIds", questionIds);
 
     // Get user progress for these questions
     const userProgress = await UserChallengesProgress.find({
       questionId: { $in: questionIds },
       "progress.userId": userId,
-      question_type
     });
+
 
     // Create a progress map for quick lookup
     const progressMap = new Map();
