@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
-const userChallengesProgressSchema = new mongoose.Schema({
+const tiyQbCodingQuestionProgressSchema = new mongoose.Schema({
     questionId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "UserChallenges",
+        ref: "TiyQbCodingQuestion",
         required: true
     },
     progress: [{
@@ -12,7 +12,7 @@ const userChallengesProgressSchema = new mongoose.Schema({
             ref: "User",
             required: true
         },
-        choosen_option: {
+        output: {
             type: String,
             required: false
         },
@@ -28,11 +28,7 @@ const userChallengesProgressSchema = new mongoose.Schema({
             type: Date,
             default: Date.now
         },
-        skip: {
-            type: Boolean,
-            default: false
-        }
-    }],
+    }]
 });
 
-module.exports = mongoose.model("UserChallengesProgress", userChallengesProgressSchema);
+module.exports = mongoose.model("TiyQbCodingQuestionProgress", tiyQbCodingQuestionProgressSchema);
