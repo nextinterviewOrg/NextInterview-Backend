@@ -272,25 +272,57 @@ exports.updateChallenge = async (req, res) => {
     const {
       programming_language,
       QuestionText,
+      question_type,
+      description,
+      input,
+      output,
+      difficulty,
+      hints = [],
+      topics = [],
+      base_code,
+      option_a,
+      option_b,
+      option_c,
+      option_d,
+      correct_option,
+      answer,
+      isDeleted
+    } = req.body;
+
+    const updateData = {
+      programming_language,
+      QuestionText,
+      question_type,
       description,
       input,
       output,
       difficulty,
       hints,
-    } = req.body;
+      topics,
+      base_code,
+      option_a,
+      option_b,
+      option_c,
+      option_d,
+      correct_option,
+      answer,
+      isDeleted
+    };
+
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
 
     const updatedChallenge = await UserChallenges.findByIdAndUpdate(
       req.params.id,
+      updateData,
       {
-        programming_language,
-        QuestionText,
-        description,
-        input,
-        output,
-        difficulty,
-        hints,
-      },
-      { new: true, runValidators: true }
+        new: true,
+        runValidators: true,
+        context: 'query' // Ensures validators run with the correct this context
+      }
     );
 
     if (!updatedChallenge) {
@@ -344,7 +376,7 @@ exports.deleteChallenge = async (req, res) => {
 
 exports.getTodaysChallengesWithStatus = async (req, res) => {
   try {
-    const{question_type} = req.query;
+    const { question_type } = req.query;
     const { userId } = req.params;
 
     if (!userId) {
@@ -431,9 +463,9 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
 
 exports.getAllChallengesWithUserResults = async (req, res) => {
   try {
-    const{question_type} = req.query;
+    const { question_type } = req.query;
     const { userId } = req.params;
-    console.log("userId", userId,"question_type",question_type);
+    console.log("userId", userId, "question_type", question_type);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -443,7 +475,7 @@ exports.getAllChallengesWithUserResults = async (req, res) => {
     }
 
     // Get all challenges
-    const allChallenges = await UserChallenges.find({question_type: question_type}).sort({ uploaded_date: -1 });
+    const allChallenges = await UserChallenges.find({ question_type: question_type }).sort({ uploaded_date: -1 });
 
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
