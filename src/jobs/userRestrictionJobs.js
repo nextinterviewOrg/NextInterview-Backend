@@ -1,7 +1,7 @@
 const User = require("../Models/user-Model");
 const { createClerkClient } = require("@clerk/backend");
 const clerkClient = createClerkClient({
-    secretKey: process.env.CLERK_SECRET_KEY_NEW,
+    secretKey: process.env.CLERK_SECRET_KEY,
 });
 
 // Function to check and remove expired restrictions
