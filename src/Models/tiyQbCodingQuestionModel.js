@@ -74,7 +74,14 @@ const tiyQbCodingQuestionSchema = new mongoose.Schema({
     isQbQuestion: {
         type: Boolean,
         default: false
-    }
+    },
+    questionbankCategoryRef:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "QuestionBankCategory",
+            required: false
+        }
+    ]
 }, { timestamps: true });
 
 
