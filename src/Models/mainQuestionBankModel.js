@@ -89,7 +89,16 @@ const MainQuestionBankSchema = new mongoose.Schema({
     dbSetupCommands: {
         type: String,
         required: false
-    }
+    },
+    solutionCode: {
+        type: String,
+        required: false
+    },
+    solutionExplanation: {
+        type: String,
+        required: false
+    },
+
 })
 
 module.exports = mongoose.model("MainQuestionBank", MainQuestionBankSchema);

@@ -22,7 +22,10 @@ exports.createChallenge = async (req, res) => {
       correct_option,
       answer,
       challenge_date,
-      topics = []
+      topics = [],
+      dbSetupCommands,
+      solutionCode,
+      solutionExplanation
     } = req.body;
 
     // Validate required fields
@@ -161,7 +164,10 @@ exports.createChallenge = async (req, res) => {
           topics,
           hints,
           challenge_date,
-          base_code
+          base_code,
+          dbSetupCommands,
+          solutionCode,
+          solutionExplanation
         });
 
         const savedChallenge = await newChallenge.save();
@@ -293,7 +299,10 @@ exports.updateChallenge = async (req, res) => {
       option_d,
       correct_option,
       answer,
-      isDeleted
+      isDeleted,
+      dbSetupCommands,
+      solutionCode,
+      solutionExplanation
     } = req.body;
 
     const updateData = {
@@ -313,7 +322,10 @@ exports.updateChallenge = async (req, res) => {
       option_d,
       correct_option,
       answer,
-      isDeleted
+      isDeleted,
+      dbSetupCommands,
+      solutionCode,
+      solutionExplanation
     };
 
     Object.keys(updateData).forEach(key => {
@@ -594,6 +606,7 @@ exports.getAllPastChallengesWithUserResults = async (req, res) => {
         questionText: challenge.QuestionText,
         description: challenge.description,
         difficulty: challenge.difficulty,
+        challenge_date: challenge.challenge_date,
         userStatus: progress ? progress.status : "not attempted",
         isCorrect: progress ? progress.isCorrect : null,
         lastAttempted: progress ? progress.timestamp : null,

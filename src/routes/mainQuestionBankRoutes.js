@@ -36,4 +36,9 @@ router.get("/get/questionsToAdd/byCategory/:categoryId", mainQuestionBankControl
 router.get("/get/tiyQuestions/withUserResponse/:userId", mainQuestionBankController.getALLTIYQuestionsWithUserResponse);
 router.get("/get/QBQuestions/withUserResponse/:userId", mainQuestionBankController.getAllQBQuestionByCAtegryIdWithUserResponse);
 router.post("/tryHarderQuestion", mainQuestionBankController.getNextLevelQuestion);
+router.get('/get/AllCodingQuestions/tiy', mainQuestionBankController.getAllTiyCodingQuestions);
+router.get('/get/AllCodingQuestions/qb', mainQuestionBankController.getAllQBCodingQuestions);
+router.get('/get/AllCodingQuestions/tiy/:moduleCode', mainQuestionBankController.getAllTiyCodingQuestionByModule);
+router.get('/get/AllCodingQuestions/qb/:moduleCode', mainQuestionBankController.getAllQBCodingQuestionsByModule);
+router.get('/get/module/:module_code', mainQuestionBankController.getQuestionsByModuleCodeAdmin);
 module.exports = router;
