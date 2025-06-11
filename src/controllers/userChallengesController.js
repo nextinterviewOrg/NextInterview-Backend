@@ -21,6 +21,7 @@ exports.createChallenge = async (req, res) => {
       option_d,
       correct_option,
       answer,
+      challenge_date,
       topics = []
     } = req.body;
 
@@ -107,6 +108,7 @@ exports.createChallenge = async (req, res) => {
           option_d,
           correct_option,
           QuestionText,
+          challenge_date
         });
 
         const savedChallenge_mcq = await newChallenge_mcq.save();
@@ -121,7 +123,8 @@ exports.createChallenge = async (req, res) => {
         const newChallenge_singleline = new UserChallenges({
           question_type,
           QuestionText,
-          answer
+          answer,
+          challenge_date
         });
 
         const savedChallenge_singleline = await newChallenge_singleline.save();
@@ -135,6 +138,7 @@ exports.createChallenge = async (req, res) => {
         const newChallenge_multiline = new UserChallenges({
           question_type,
           QuestionText,
+          challenge_date,
           answer
         });
 
@@ -156,6 +160,7 @@ exports.createChallenge = async (req, res) => {
           difficulty,
           topics,
           hints,
+          challenge_date,
           base_code
         });
 
@@ -171,6 +176,7 @@ exports.createChallenge = async (req, res) => {
         const newChallenge_approach = new UserChallenges({
           question_type,
           QuestionText,
+          challenge_date
         });
 
         const savedChallenge_approach = await newChallenge_approach.save();
@@ -184,6 +190,7 @@ exports.createChallenge = async (req, res) => {
         const newChallenge_caseStudy = new UserChallenges({
           question_type,
           QuestionText,
+          challenge_date
         });
 
         const savedChallenge_caseStudy = await newChallenge_caseStudy.save();
@@ -394,11 +401,11 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
 
     // Get today's challenges
     const todaysChallenges = await UserChallenges.find({
-      uploaded_date: {
+      challenge_date: {
         $gte: today,
         $lt: tomorrow
       },
-      question_type
+      // question_type
     });
 
     if (todaysChallenges.length === 0) {
@@ -417,7 +424,6 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
       questionId: { $in: questionIds },
       "progress.userId": userId
     });
-
     // Create a map of questionId to user progress for quick lookup
     const progressMap = new Map();
     userProgress.forEach(doc => {
@@ -480,6 +486,81 @@ exports.getAllChallengesWithUserResults = async (req, res) => {
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
     console.log("questionIds", questionIds);
+
+    // Get user progress for these questions
+    const userProgress = await UserChallengesProgress.find({
+      questionId: { $in: questionIds },
+      "progress.userId": userId,
+    });
+
+
+    // Create a progress map for quick lookup
+    const progressMap = new Map();
+    userProgress.forEach(doc => {
+      const userProg = doc.progress.find(p => p.userId.toString() === userId.toString());
+      if (userProg) {
+        progressMap.set(doc.questionId.toString(), {
+          status: userProg.skip ? "skipped" :
+            userProg.answer ? "attempted" : "viewed",
+          answer: userProg.answer,
+          isCorrect: userProg.finalResult,
+          timestamp: userProg.timestamp
+        });
+      }
+    });
+
+    // Combine challenge data with user results
+    const challengesWithResults = allChallenges.map(challenge => {
+      const progress = progressMap.get(challenge._id.toString());
+
+      return {
+        challengeId: challenge._id,
+        programming_language: challenge.programming_language,
+        questionText: challenge.QuestionText,
+        description: challenge.description,
+        difficulty: challenge.difficulty,
+        userStatus: progress ? progress.status : "not attempted",
+        isCorrect: progress ? progress.isCorrect : null,
+        lastAttempted: progress ? progress.timestamp : null,
+        hints: challenge.hints
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "All challenges with user results retrieved successfully",
+      data: challengesWithResults
+    });
+
+  } catch (error) {
+    console.error("Error getting challenges with user results:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while retrieving challenges with user results",
+      error: error.message
+    });
+  }
+};
+exports.getAllPastChallengesWithUserResults = async (req, res) => {
+  try {
+    const { question_type } = req.query;
+    const { userId } = req.params;
+    console.log("userId", userId, "question_type", question_type);
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID"
+      });
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Get all challenges
+    const allChallenges = await UserChallenges.find({ challenge_date: { $lt: today } }).sort({ uploaded_date: -1 });
+
+    // Get all question IDs
+    const questionIds = allChallenges.map(challenge => challenge._id);
+
 
     // Get user progress for these questions
     const userProgress = await UserChallengesProgress.find({

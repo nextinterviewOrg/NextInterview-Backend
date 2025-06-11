@@ -25,7 +25,15 @@ router.get("/get/questionByfilter", mainQuestionBankController.getQuestions);
 router.get("/get/questionByID/:id", mainQuestionBankController.getQuestionByID);
 router.delete("/softDelete/:id", mainQuestionBankController.softDeleteQuestion);
 router.put("/edit/:id", mainQuestionBankController.editQuestion);
-router.get("/get/module/:module_code", mainQuestionBankController.getQuestionsByModuleCode);
-
-
+router.get("/get/module/:module_code/:userId", mainQuestionBankController.getQuestionsByModuleCode);
+router.post("/addcodingquestion", mainQuestionBankController.addCodingQuestion);
+router.put("/updatecodingquestion/:id", mainQuestionBankController.updateCodingQuestion);
+router.get('/questions-with-attempts/:userId', mainQuestionBankController.getAllQuestionsWithAttemptStatus);
+router.get('/get/AllCodingQuestions', mainQuestionBankController.getAllCodingQuestions);
+router.get("/get/questionByfilter/userResponse/:userId", mainQuestionBankController.getQuestions);
+router.get("/get/qbQuestionBycategory/:category/:userId", mainQuestionBankController.getAllQBQuestionByCAtegryId);
+router.get("/get/questionsToAdd/byCategory/:categoryId", mainQuestionBankController.getQuestionToAddCategory);
+router.get("/get/tiyQuestions/withUserResponse/:userId", mainQuestionBankController.getALLTIYQuestionsWithUserResponse);
+router.get("/get/QBQuestions/withUserResponse/:userId", mainQuestionBankController.getAllQBQuestionByCAtegryIdWithUserResponse);
+router.post("/tryHarderQuestion", mainQuestionBankController.getNextLevelQuestion);
 module.exports = router;

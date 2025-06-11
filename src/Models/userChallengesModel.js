@@ -52,7 +52,7 @@ const userChallengesSchema = new mongoose.Schema({
     ],
     question_type: {
         type: String,
-        enum: ["mcq", "single-line", "multi-line", "approach","coding","case-study"],
+        enum: ["mcq", "single-line", "multi-line", "approach", "coding", "case-study"],
         message: 'question type must be one of the following: mcq, single-line, multi-line, approach'
     },
     isDeleted: {
@@ -86,6 +86,10 @@ const userChallengesSchema = new mongoose.Schema({
     answer: {
         type: String,
         required: false
+    },
+    challenge_date: {
+        type: Date,
+        default: Date.now
     },
 
 }, { timestamps: true });
