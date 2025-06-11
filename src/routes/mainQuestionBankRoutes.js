@@ -41,4 +41,5 @@ router.get('/get/AllCodingQuestions/qb', mainQuestionBankController.getAllQBCodi
 router.get('/get/AllCodingQuestions/tiy/:moduleCode', mainQuestionBankController.getAllTiyCodingQuestionByModule);
 router.get('/get/AllCodingQuestions/qb/:moduleCode', mainQuestionBankController.getAllQBCodingQuestionsByModule);
 router.get('/get/module/:module_code', mainQuestionBankController.getQuestionsByModuleCodeAdmin);
+router.post('/nextQuestion', mainQuestionBankController.getNextQuestion);
 module.exports = router;

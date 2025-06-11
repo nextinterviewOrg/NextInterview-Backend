@@ -634,7 +634,7 @@ exports.getNextLevelQuestion = async (req, res) => {
 };
 exports.getAllTiyCodingQuestions = async (req, res) => {
   try {
-    const questions = await MainQuestionBank.find({ isTIYQustion: true,question_type: 'coding', isDeleted: false });
+    const questions = await MainQuestionBank.find({ isTIYQustion: true, question_type: 'coding', isDeleted: false });
     res.status(200).json({
       success: true,
       data: questions
@@ -650,7 +650,7 @@ exports.getAllTiyCodingQuestions = async (req, res) => {
 }
 exports.getAllQBCodingQuestions = async (req, res) => {
   try {
-    const questions = await MainQuestionBank.find({ isQuestionBank: true,question_type: 'coding', isDeleted: false });
+    const questions = await MainQuestionBank.find({ isQuestionBank: true, question_type: 'coding', isDeleted: false });
     res.status(200).json({
       success: true,
       data: questions
@@ -667,7 +667,7 @@ exports.getAllQBCodingQuestions = async (req, res) => {
 exports.getAllTiyCodingQuestionByModule = async (req, res) => {
   try {
     const { moduleCode } = req.params;
-    const questions = await MainQuestionBank.find({ isTIYQustion: true,question_type: 'coding', isDeleted: false ,module_code:moduleCode});
+    const questions = await MainQuestionBank.find({ isTIYQustion: true, question_type: 'coding', isDeleted: false, module_code: moduleCode });
     res.status(200).json({
       success: true,
       data: questions
@@ -683,8 +683,8 @@ exports.getAllTiyCodingQuestionByModule = async (req, res) => {
 }
 exports.getAllQBCodingQuestionsByModule = async (req, res) => {
   try {
-     const { moduleCode } = req.params;
-    const questions = await MainQuestionBank.find({ isQuestionBank: true,question_type: 'coding', isDeleted: false,module_code:moduleCode });
+    const { moduleCode } = req.params;
+    const questions = await MainQuestionBank.find({ isQuestionBank: true, question_type: 'coding', isDeleted: false, module_code: moduleCode });
     res.status(200).json({
       success: true,
       data: questions
@@ -714,10 +714,50 @@ exports.getQuestionsByModuleCodeAdmin = async (req, res) => {
     filter.isDeleted = false;
     filter.module_code = module_code;
     const questions = await MainQuestionBank.find(filter);
-    
+
     return res.status(200).json({ success: true, data: questions });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+
+exports.getNextQuestion = async (req, res) => {
+  try {
+    const { questionId, categoryId } = req.body;
+    let filter = {};
+    if (categoryId) {
+      filter.questionbankCategoryRef = { $in: [categoryId] };
+    }
+    console.log(filter);
+    const questions = await MainQuestionBank.find({
+      ...filter, 
+      isDeleted: false,    
+      isQuestionBank: true 
+    });
+    const questionIndex = questions.findIndex((q) => {
+    
+     return q._id.toString() === questionId
+    });
+    console.log("questionIndex", questionIndex);
+    if (questionIndex === -1) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+    let nextQuestion;
+    if (questionIndex === questions.length - 1) {
+      nextQuestion = questions[0];
+    } else {
+      nextQuestion = questions[questionIndex + 1];
+    }
+    if (nextQuestion._id.toString() === questionId) {
+      return res.status(200).json({ success: false, message: 'No next question found' });
+    }
+    if (!nextQuestion) {
+      return res.status(404).json({ success: false, message: 'No next question found' });
+    }
+    return res.status(200).json({ success: true, data: nextQuestion });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}
