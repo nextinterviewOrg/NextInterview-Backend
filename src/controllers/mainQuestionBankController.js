@@ -632,3 +632,92 @@ exports.getNextLevelQuestion = async (req, res) => {
     });
   }
 };
+exports.getAllTiyCodingQuestions = async (req, res) => {
+  try {
+    const questions = await MainQuestionBank.find({ isTIYQustion: true,question_type: 'coding', isDeleted: false });
+    res.status(200).json({
+      success: true,
+      data: questions
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+}
+exports.getAllQBCodingQuestions = async (req, res) => {
+  try {
+    const questions = await MainQuestionBank.find({ isQuestionBank: true,question_type: 'coding', isDeleted: false });
+    res.status(200).json({
+      success: true,
+      data: questions
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+}
+exports.getAllTiyCodingQuestionByModule = async (req, res) => {
+  try {
+    const { moduleCode } = req.params;
+    const questions = await MainQuestionBank.find({ isTIYQustion: true,question_type: 'coding', isDeleted: false ,module_code:moduleCode});
+    res.status(200).json({
+      success: true,
+      data: questions
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+}
+exports.getAllQBCodingQuestionsByModule = async (req, res) => {
+  try {
+     const { moduleCode } = req.params;
+    const questions = await MainQuestionBank.find({ isQuestionBank: true,question_type: 'coding', isDeleted: false,module_code:moduleCode });
+    res.status(200).json({
+      success: true,
+      data: questions
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+}
+exports.getQuestionsByModuleCodeAdmin = async (req, res) => {
+  try {
+    const { question_category } = req.query
+    const { module_code, } = req.params;
+    let filter = {};
+    if (question_category) {
+      if (question_category === 'tiy') {
+        filter.isTIYQustion = true;
+      } else if (question_category === 'questionBank') {
+        filter.isQuestionBank = true;
+      }
+    }
+    filter.question_type = { $ne: 'coding' };
+    filter.isDeleted = false;
+    filter.module_code = module_code;
+    const questions = await MainQuestionBank.find(filter);
+    
+    return res.status(200).json({ success: true, data: questions });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};

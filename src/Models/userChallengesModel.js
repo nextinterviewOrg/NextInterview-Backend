@@ -91,6 +91,18 @@ const userChallengesSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    dbSetupCommands: {
+        type: String,
+        required: false
+    },
+    solutionCode: {
+        type: String,
+        required: false
+    },
+    solutionExplanation: {
+        type: String,
+        required: false
+    },
 
 }, { timestamps: true });
 
