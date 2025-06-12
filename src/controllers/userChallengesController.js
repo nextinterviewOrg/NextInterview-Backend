@@ -169,7 +169,6 @@ exports.createChallenge = async (req, res) => {
           solutionCode,
           solutionExplanation
         });
-
         const savedChallenge = await newChallenge.save();
         res.status(201).json({
           success: true,
