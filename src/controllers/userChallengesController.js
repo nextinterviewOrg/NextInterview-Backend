@@ -606,6 +606,7 @@ exports.getAllPastChallengesWithUserResults = async (req, res) => {
         description: challenge.description,
         difficulty: challenge.difficulty,
         challenge_date: challenge.challenge_date,
+        question_type: challenge.question_type,
         userStatus: progress ? progress.status : "not attempted",
         isCorrect: progress ? progress.isCorrect : null,
         lastAttempted: progress ? progress.timestamp : null,
