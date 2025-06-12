@@ -430,10 +430,20 @@ exports.getAllQBQuestionByCAtegryId = async (req, res) => {
       let attemptDetails = null;
       const userProgress = await UserMainQuestionBankProgress.findOne({
         moduleId: module._id,
-        "progress.userId": userId
+
       });
+      let userSpecificProgress = null;
       if (userProgress) {
-        const userAttempt = userProgress.progress[0]?.answered_Questions.find(
+        userSpecificProgress =
+          userProgress.progress.find(
+            p => {
+              return p.userId.equals(userId);
+            }
+          );
+      }
+
+      if (userSpecificProgress) {
+        const userAttempt = userSpecificProgress?.answered_Questions.find(
           q => q.questionBankId === question._id.toString()
         );
 
@@ -483,11 +493,21 @@ exports.getAllQBQuestionByCAtegryIdWithUserResponse = async (req, res) => {
       let attempted = false;
       let attemptDetails = null;
       const userProgress = await UserMainQuestionBankProgress.findOne({
-        moduleId: module._id,
-        "progress.userId": userId
+        moduleId: module._id
       });
+      // console.log("userProgress", userProgress);
+      let userSpecificProgress = null;
       if (userProgress) {
-        const userAttempt = userProgress.progress[0]?.answered_Questions.find(
+        userSpecificProgress =
+          userProgress.progress.find(
+            p => {
+              return p.userId.equals(userId);
+            }
+          );
+      }
+
+      if (userSpecificProgress) {
+        const userAttempt = userSpecificProgress?.answered_Questions.find(
           q => q.questionBankId === question._id.toString()
         );
 
@@ -527,10 +547,19 @@ exports.getALLTIYQuestionsWithUserResponse = async (req, res) => {
       let attemptDetails = null;
       const userProgress = await UserMainQuestionBankProgress.findOne({
         moduleId: module._id,
-        "progress.userId": userId
       });
+      let userSpecificProgress = null;
       if (userProgress) {
-        const userAttempt = userProgress.progress[0]?.answered_Questions.find(
+        userSpecificProgress =
+          userProgress.progress.find(
+            p => {
+              return p.userId.equals(userId);
+            }
+          );
+      }
+
+      if (userSpecificProgress) {
+        const userAttempt = userSpecificProgress?.answered_Questions.find(
           q => q.questionBankId === question._id.toString()
         );
 
@@ -731,13 +760,13 @@ exports.getNextQuestion = async (req, res) => {
     }
     console.log(filter);
     const questions = await MainQuestionBank.find({
-      ...filter, 
-      isDeleted: false,    
-      isQuestionBank: true 
+      ...filter,
+      isDeleted: false,
+      isQuestionBank: true
     });
     const questionIndex = questions.findIndex((q) => {
-    
-     return q._id.toString() === questionId
+
+      return q._id.toString() === questionId
     });
     console.log("questionIndex", questionIndex);
     if (questionIndex === -1) {
