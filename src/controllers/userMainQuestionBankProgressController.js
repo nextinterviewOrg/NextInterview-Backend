@@ -120,7 +120,7 @@ exports.createUserQuestionBankProgress = async (req, res) => {
             );
             await session.abortTransaction();
             return res.status(200).json({
-                success: false,
+                success: true,
                 message: "Question already answered by user and result updated",
                 data:userProgress.answered_Questions
             });
