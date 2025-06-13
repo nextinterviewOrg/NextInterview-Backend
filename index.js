@@ -91,7 +91,7 @@ const mainQuestionBankProgressRoutes = require("./src/routes/userMainQuestionBan
 const tiyQbQuestionRoutes = require("./src/routes/tiyQbCodingQuestionRoutes");
 const tiyQbCodingProgressRoutes = require("./src/routes/tiyQbCodingQuestionProgressRoutes");  
 const questionBankCategoryRoutes= require("./src/routes/questionBankCategoryRoutes");
-
+const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -140,7 +140,7 @@ app.use("/mainQuestionBankProgress", mainQuestionBankProgressRoutes);
 app.use("/tiyQbQuestion", tiyQbQuestionRoutes); 
 app.use("/tiyQbCodingProgress", tiyQbCodingProgressRoutes);
 app.use("/questionBankCategory", questionBankCategoryRoutes);
-
+app.use("/subscription", subscriptionRoutes);
 
 
 

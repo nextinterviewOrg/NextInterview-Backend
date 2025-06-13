@@ -28,6 +28,7 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
     "openai": "^4.86.1",
+    "razorpay": "^2.9.6",
     "svix": "^1.45.1"
   }
 }

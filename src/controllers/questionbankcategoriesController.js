@@ -181,3 +181,38 @@ exports.getCategoriesById = async (req, res) => {
         });
     }
 };
+
+exports.deleteQuestionBankCategory = async (req, res) => {
+    try {
+        const { category_id } = req.params;
+
+
+        const questionBankCategories = await QuestionBankCategory.findById(category_id);
+        if (!questionBankCategories) {
+            return res.status(404).json({
+                success: false,
+                message: "QuestionBankCategory not found",
+            });
+        }
+        await Promise.all(questionBankCategories.questions.map(async (question_id) => {
+            const question = await MainQuestionBank.findById(question_id);
+            if (question) {
+                question.questionbankCategoryRef = question.questionbankCategoryRef.filter((id) => !id.equals(category_id));
+                await question.save();
+            }
+        }))
+        await questionBankCategories.findByIdAndDelete(category_id);
+        res.status(200).json({
+            success: true,
+            message: "QuestionBankCategories deleted successfully",
+            data: questionBankCategories,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete QuestionBankCategories",
+            error: err.message,
+        });
+    }
+}

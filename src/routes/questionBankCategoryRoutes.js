@@ -9,4 +9,5 @@ router.post("/", questionBankCategoryController.createQuestionBankCategory);
 router.put("/:category_id", questionBankCategoryController.editQuestionBankCategory);
 router.post("/addQuestionToCategory", questionBankCategoryController.addQuestionsToCategory);
 router.post("/removeQuestionFromCategory", questionBankCategoryController.removeQuestionsFromCategory);
+router.delete("/:category_id", questionBankCategoryController.deleteQuestionBankCategory);
 module.exports = router;
