@@ -11,7 +11,7 @@ const razorpayInstance = new Razorpay({
 // POST /api/plans/create
 exports.createPlan = async (req, res) => {
   try {
-    const { name, description, interval, amount } = req.body;
+    const { name, description, interval, amount,features } = req.body;
 
     const plan = await razorpayInstance.plans.create({
       period: interval,
@@ -30,7 +30,8 @@ exports.createPlan = async (req, res) => {
       razorpay_plan_id: plan.id,
       interval,
       amount,
-      currency: "INR"
+      currency: "INR",
+      features
     });
 
     await savedPlan.save();
@@ -120,20 +121,26 @@ exports.createSubscription = async (req, res) => {
 exports.getUserSubscription = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId).populate("subscription.plan");
+    const user = await User.findById(userId);
+  
 
-    if (!user || !user.subscription?.razorpay_subscription_id) {
-      return res.status(404).json({ message: "No active subscription" });
+    if (!user || !user?.razorpay_subscription_id) {
+      return res.status(200).json({success:false, message: "No active subscription" });
     }
 
     const subscription = await razorpayInstance.subscriptions.fetch(
-      user.subscription.razorpay_subscription_id
+      user?.razorpay_subscription_id
     );
+    let plan;
+    if(user.subscription_status==="active"){
+      plan = await SubscriptionPlan.findOne({razorpay_plan_id:user.razorpay_plan_id});
+    }
 
     res.json({
       success: true,
       subscription,
-      plan: user.subscription.plan,
+      status: user.subscription_status,
+      plan: plan,
     });
   } catch (error) {
     console.error("Get subscription error:", error);

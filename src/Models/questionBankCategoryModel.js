@@ -12,7 +12,7 @@ const questionBankCategorySchema = new mongoose.Schema({
     questions:[ {
         type: mongoose.Schema.Types.ObjectId,
         required: false,
-        ref:"TiyQbCodingQuestion"
+        ref:"MainQuestionBank"
     }]
 }, { timestamps: true });
 
