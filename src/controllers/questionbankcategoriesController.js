@@ -201,7 +201,7 @@ exports.deleteQuestionBankCategory = async (req, res) => {
                 await question.save();
             }
         }))
-        await questionBankCategories.findByIdAndDelete(category_id);
+        await QuestionBankCategory.findByIdAndDelete(category_id);
         res.status(200).json({
             success: true,
             message: "QuestionBankCategories deleted successfully",

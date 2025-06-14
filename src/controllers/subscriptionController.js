@@ -2,11 +2,11 @@ const Razorpay = require("razorpay");
 const SubscriptionPlan = require("../Models/SubscriptionPlan");
 const User = require("../Models/user-Model");
 const mongoose = require("mongoose");
-
-// const razorpayInstance = new Razorpay({
-//   key_id: process.env.RAZORPAY_KEY_ID,
-//   key_secret: process.env.RAZORPAY_KEY_SECRET,
-// });
+const crypto = require("crypto");
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 // POST /api/plans/create
 exports.createPlan = async (req, res) => {
@@ -77,8 +77,9 @@ exports.createSubscription = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const plan = await SubscriptionPlan.findById(planId);
+    const plan = await SubscriptionPlan.findOne({razorpay_plan_id:planId});
     if (!plan || !plan.isActive) {
+      console.log(plan);
       return res.status(400).json({ message: "Invalid or inactive plan" });
     }
 
@@ -89,12 +90,18 @@ exports.createSubscription = async (req, res) => {
     });
 
     // Save details to user profile
-    user.subscription = {
-      razorpay_subscription_id: subscription.id,
-      plan: plan._id,
-      start_date: new Date(subscription.start_at * 1000),
-      status: subscription.status,
-    };
+    // user.subscription_renewal_history.push( {
+    //   subscription_id: subscription.id,
+    //   start_date: new Date(subscription.start_at * 1000),
+    //   end_date: new Date(subscription.end_at * 1000),
+    //   renewed_at: new Date(),
+    //   status: subscription.status,
+    // });
+    user.razorpay_plan_id = plan.razorpay_plan_id;
+    user.razorpay_subscription_id = subscription.id;
+    user.subscription_status = subscription.status;
+    user.subscription_start=new Date(subscription.start_at * 1000),
+    user.subscription_end=new Date(subscription.end_at * 1000),
     await user.save();
 
     res.json({
@@ -157,50 +164,70 @@ exports.cancelSubscription = async (req, res) => {
 
 
 exports.razorpayWebhook = async (req, res) => {
-  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  console.log("razorpay webhook called");
+  const RAZORPAY_SECRET = process.env.RAZORPAY_SECRET;
+  const signature = req.headers["x-razorpay-signature"];
+  const body = JSON.stringify(req.body);
 
-  const receivedSignature = req.headers["x-razorpay-signature"];
-  const generatedSignature = crypto
-    .createHmac("sha256", webhookSecret)
-    .update(JSON.stringify(req.body))
+  const expectedSignature = crypto
+    .createHmac("sha256", RAZORPAY_SECRET)
+    .update(body)
     .digest("hex");
-
-  if (receivedSignature !== generatedSignature) {
-    console.warn("⚠️ Signature mismatch!");
-    return res.status(400).json({ message: "Invalid signature" });
+console.log("signature", signature, "expectedSignature", expectedSignature,"\n ",(signature == expectedSignature));
+  if (signature !== expectedSignature) {
+    return res.status(200).send("Invalid signature");
   }
-
+  
+console.dir(req.body,{depth:null});
   const event = req.body.event;
-  const payload = req.body.payload?.subscription?.entity;
-  const razorpaySubscriptionId = payload?.id;
+  const subscription = req.body.payload.subscription?.entity;
 
-  if (!razorpaySubscriptionId) {
-    return res.status(400).json({ message: "Missing subscription ID in payload" });
+  if (!subscription || !subscription.id) {
+    return res.status(400).send("Missing subscription data");
   }
 
   try {
-    const user = await User.findOne({ "subscription.razorpay_subscription_id": razorpaySubscriptionId });
+    const user = await User.findOne({ razorpay_subscription_id: subscription.id });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found for this subscription" });
+      return res.status(404).send("User not found");
     }
 
-    switch (event) {
-      case "subscription.activated":
-      case "subscription.completed":
-      case "subscription.halted":
-      case "subscription.cancelled":
-        user.subscription.status = payload.status;
-        await user.save();
-        break;
-      default:
-        console.log(`Unhandled event: ${event}`);
+    // Handle events
+    if (event === "subscription.activated" || event === "subscription.completed") {
+      const start = new Date(subscription.current_start * 1000);
+      const end = new Date(subscription.current_end * 1000);
+      user.razorpay_subscription_id = subscription.id;
+      user.razorpay_plan_id = subscription.plan_id;
+      user.subscription_status = "active";
+      user.subscription_start = start;
+      user.subscription_end = end;
+
+      // Add to renewal history
+      user.subscription_renewal_history.push({
+        subscription_id: subscription.id,
+        start_date: start,
+        end_date: end,
+        status: "active",
+        renewed_at: new Date(),
+      });
+      console.log("usrer", user);
+
+      await user.save();
+      return res.status(200).send("Subscription activated/renewed");
     }
 
-    res.status(200).json({ message: `Webhook handled for event: ${event}` });
+    if (event === "subscription.cancelled" || event === "subscription.halted") {
+      user.subscription_status = event === "subscription.cancelled" ? "cancelled" : "halted";
+      user.subscription_end = new Date(subscription.current_end * 1000);
 
+      await user.save();
+      return res.status(200).send("Subscription cancelled or halted");
+    }
+
+    res.status(200).send("Unhandled event processed");
   } catch (error) {
-    console.error("🔴 Error handling webhook:", error);
-    res.status(500).json({ message: "Webhook processing error" });
+    console.error("Webhook error:", error);
+    res.status(500).send("Server error");
   }
 };
