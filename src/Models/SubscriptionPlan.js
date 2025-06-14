@@ -5,7 +5,8 @@ const subscriptionPlanSchema = new mongoose.Schema({
   description: { type: String },
   razorpay_plan_id: { type: String, required: true },      // From Razorpay response
   interval: { type: String, enum: ["monthly", "yearly"], required: true },
-  amount: { type: Number, required: true },                // In rupees (e.g. 199)
+  amount: { type: Number, required: true },
+  features: [{ type: String, required: false }],               // In rupees (e.g. 199)
   currency: { type: String, default: "INR" },
   isActive: { type: Boolean, default: true },              // Activate/Deactivate toggle
   created_by: { type: String },                            // Optional: admin ID/email

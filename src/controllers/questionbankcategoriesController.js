@@ -122,8 +122,8 @@ exports.editQuestionBankCategory = async (req, res) => {
                 message: "QuestionBankCategory not found",
             });
         }
-        if (numberOfQuestions > (questionBankCategoryData.numberOfQuestions - questionBankCategoryData.questions.length)) {
-            return res.status(400).json({
+        if ( numberOfQuestions >(questionBankCategoryData.numberOfQuestions - questionBankCategoryData.questions.length) ) {
+            return res.status(200).json({
                 success: false,
                 message: "please remove questions first to update number of questions",
             });
@@ -167,6 +167,7 @@ exports.getCategoriesById = async (req, res) => {
         const { category_id } = req.params;
         const questionBankCategories = await QuestionBankCategory.findById(category_id)
             .populate("questions");
+
         res.status(200).json({
             success: true,
             message: "QuestionBankCategories fetched successfully",
