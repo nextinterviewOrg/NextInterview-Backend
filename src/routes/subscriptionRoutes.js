@@ -8,5 +8,7 @@ router.get("/getAllPlans", subscriptionController.getAllPlans);
 router.post("/createSubscription", subscriptionController.createSubscription);
 router.post("/webhook-subscription", subscriptionController.razorpayWebhook);
 router.get("/getSubscriptionByUserId/:userId", subscriptionController.getUserSubscription);
-
+router.post("/cancelSubscription", subscriptionController.cancelSubscription);
+router.post("/getAllPayments", subscriptionController.getPaymentsByDuration);
+router.get("/getPaymentSummary", subscriptionController.getPaymentsSummary); 
 module.exports = router;

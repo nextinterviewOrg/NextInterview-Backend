@@ -7,11 +7,11 @@ const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
-
+const moment = require("moment-timezone");
 // POST /api/plans/create
 exports.createPlan = async (req, res) => {
   try {
-    const { name, description, interval, amount,features } = req.body;
+    const { name, description, interval, amount, features } = req.body;
 
     const plan = await razorpayInstance.plans.create({
       period: interval,
@@ -78,7 +78,7 @@ exports.createSubscription = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const plan = await SubscriptionPlan.findOne({razorpay_plan_id:planId});
+    const plan = await SubscriptionPlan.findOne({ razorpay_plan_id: planId });
     if (!plan || !plan.isActive) {
       console.log(plan);
       return res.status(400).json({ message: "Invalid or inactive plan" });
@@ -101,9 +101,9 @@ exports.createSubscription = async (req, res) => {
     user.razorpay_plan_id = plan.razorpay_plan_id;
     user.razorpay_subscription_id = subscription.id;
     user.subscription_status = subscription.status;
-    user.subscription_start=new Date(subscription.start_at * 1000),
-    user.subscription_end=new Date(subscription.end_at * 1000),
-    await user.save();
+    user.subscription_start = new Date(subscription.start_at * 1000),
+      user.subscription_end = new Date(subscription.end_at * 1000),
+      await user.save();
 
     res.json({
       success: true,
@@ -122,18 +122,18 @@ exports.getUserSubscription = async (req, res) => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId);
-  
+
 
     if (!user || !user?.razorpay_subscription_id) {
-      return res.status(200).json({success:false, message: "No active subscription" });
+      return res.status(200).json({ success: false, message: "No active subscription" });
     }
 
     const subscription = await razorpayInstance.subscriptions.fetch(
       user?.razorpay_subscription_id
     );
     let plan;
-    if(user.subscription_status==="active"){
-      plan = await SubscriptionPlan.findOne({razorpay_plan_id:user.razorpay_plan_id});
+    if (user.subscription_status === "active") {
+      plan = await SubscriptionPlan.findOne({ razorpay_plan_id: user.razorpay_plan_id });
     }
 
     res.json({
@@ -153,13 +153,16 @@ exports.cancelSubscription = async (req, res) => {
     const { userId } = req.body;
 
     const user = await User.findById(userId);
-    const subId = user?.subscription?.razorpay_subscription_id;
+    if (user.subscription_status !== "active") {
+      return res.status(400).json({ message: "No active subscription" });
+    }
+    const subId = user?.razorpay_subscription_id;
 
     if (!subId) return res.status(400).json({ message: "No active subscription" });
 
     const cancel = await razorpayInstance.subscriptions.cancel(subId);
 
-    user.subscription.status = "cancelled";
+    user.subscription_status = "cancelled";
     await user.save();
 
     res.json({ success: true, message: "Subscription cancelled", cancel });
@@ -180,12 +183,12 @@ exports.razorpayWebhook = async (req, res) => {
     .createHmac("sha256", RAZORPAY_SECRET)
     .update(body)
     .digest("hex");
-console.log("signature", signature, "expectedSignature", expectedSignature,"\n ",(signature == expectedSignature));
+  console.log("signature", signature, "expectedSignature", expectedSignature, "\n ", (signature == expectedSignature));
   if (signature !== expectedSignature) {
     return res.status(200).send("Invalid signature");
   }
-  
-console.dir(req.body,{depth:null});
+
+  console.dir(req.body, { depth: null });
   const event = req.body.event;
   const subscription = req.body.payload.subscription?.entity;
 
@@ -236,5 +239,144 @@ console.dir(req.body,{depth:null});
   } catch (error) {
     console.error("Webhook error:", error);
     res.status(500).send("Server error");
+  }
+};
+exports.getPaymentsByDuration = async (req, res) => {
+  try {
+    const { duration = "monthly", offset = 0 } = req.query;
+    console.log("duration", duration, "offset", offset);
+    let fromDate, toDate;
+
+    const offsetNum = parseInt(offset, 10);
+    const today = moment().tz("Asia/Kolkata");
+
+    if (duration === "monthly") {
+      fromDate = today.clone().startOf("month").subtract(offsetNum, "months");
+      toDate = today.clone().endOf("month").subtract(offsetNum, "months");
+    } else if (duration === "weekly") {
+      fromDate = today.clone().startOf("isoWeek").subtract(offsetNum, "weeks");
+      toDate = today.clone().endOf("isoWeek").subtract(offsetNum, "weeks");
+    } else if (duration === "yearly") {
+      fromDate = today.clone().startOf("year").subtract(offsetNum, "years");
+      toDate = today.clone().endOf("year").subtract(offsetNum, "years");
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid duration" });
+    }
+
+    const from = Math.floor(fromDate.valueOf() / 1000); // Razorpay expects timestamps in seconds
+    const to = Math.floor(toDate.valueOf() / 1000);
+
+    const payments = await razorpayInstance.payments.all({ from, to });
+
+    res.json({
+      success: true,
+      duration,
+      range: { from: fromDate.format(), to: toDate.format() },
+      count: payments.count,
+      payments: payments.items,
+    });
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch payments" });
+  }
+};
+const calculatePercentageChange = (current, previous) => {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return ((current - previous) / previous) * 100;
+};
+
+
+exports.getPaymentsSummary = async (req, res) => {
+  try {
+    const ranges = {
+      current_month: {
+        from: moment().startOf("month").unix(),
+        to: moment().endOf("month").unix(),
+      },
+      previous_month: {
+        from: moment().subtract(1, "month").startOf("month").unix(),
+        to: moment().subtract(1, "month").endOf("month").unix(),
+      },
+      current_week: {
+        from: moment().startOf("week").unix(),
+        to: moment().endOf("week").unix(),
+      },
+      previous_week: {
+        from: moment().subtract(1, "week").startOf("week").unix(),
+        to: moment().subtract(1, "week").endOf("week").unix(),
+      },
+      current_year: {
+        from: moment().startOf("year").unix(),
+        to: moment().endOf("year").unix(),
+      },
+      previous_year: {
+        from: moment().subtract(1, "year").startOf("year").unix(),
+        to: moment().subtract(1, "year").endOf("year").unix(),
+      },
+    };
+
+    const summary = {};
+
+    for (const [key, range] of Object.entries(ranges)) {
+      const payments = await razorpayInstance.payments.all({
+        from: range.from,
+        to: range.to,
+        count: 100, // increase with pagination if needed
+      });
+
+      let totalAmount = 0;
+      let successCount = 0;
+      let failedCount = 0;
+
+      payments.items.forEach((p) => {
+        if (p.status === "captured") {
+          totalAmount += p.amount;
+          successCount++;
+        } else {
+          failedCount++;
+        }
+      });
+
+      summary[key] = {
+        total: totalAmount / 100, // in INR
+        successCount,
+        failedCount,
+      };
+    }
+
+    const data = {
+      month: {
+        current: summary.current_month.total,
+        previous: summary.previous_month.total,
+        change_percentage: calculatePercentageChange(summary.current_month.total, summary.previous_month.total),
+        successCount: summary.current_month.successCount,
+        previousSuccessCount: summary.previous_month.successCount,
+        successChangePercentage: calculatePercentageChange(summary.current_month.successCount, summary.previous_month.successCount),
+        failedCount: summary.current_month.failedCount,
+      },
+      week: {
+        current: summary.current_week.total,
+        previous: summary.previous_week.total,
+        change_percentage: calculatePercentageChange(summary.current_week.total, summary.previous_week.total),
+        successCount: summary.current_week.successCount,
+        previousSuccessCount: summary.previous_week.successCount,
+        successChangePercentage: calculatePercentageChange(summary.current_week.successCount, summary.previous_week.successCount),
+        failedCount: summary.current_week.failedCount,
+      },
+      year: {
+        current: summary.current_year.total,
+        previous: summary.previous_year.total,
+        change_percentage: calculatePercentageChange(summary.current_year.total, summary.previous_year.total),
+        successCount: summary.current_year.successCount,
+        previousSuccessCount: summary.previous_year.successCount,
+        successChangePercentage: calculatePercentageChange(summary.current_year.successCount, summary.previous_year.successCount),
+        failedCount: summary.current_year.failedCount,
+      },
+    };
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Payment summary fetch error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch summary" });
   }
 };
