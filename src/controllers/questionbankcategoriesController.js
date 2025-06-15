@@ -74,6 +74,7 @@ exports.addQuestionsToCategory = async (req, res) => {
 exports.removeQuestionsFromCategory = async (req, res) => {
     try {
         const { category_id, question_ids } = req.body;
+        console.log(category_id, question_ids);
         let questionBankCategory = await QuestionBankCategory.findById(category_id);
         if (!questionBankCategory) {
             return res.status(404).json({

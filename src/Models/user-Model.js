@@ -58,8 +58,8 @@ const userSchema = new mongoose.Schema({
   razorpay_plan_id: { type: String },             // Which plan is subscribed
   subscription_status: {                          // e.g., active, cancelled, expired
     type: String,
-    enum: ["active", "cancelled", "expired", "halted", "created"],
-    default: "created",
+    enum: ["active", "cancelled", "expired", "halted", "created","not_subscribed"],
+    default: "not_subscribed",
   },
   subscription_start: { type: Date },
   subscription_end: { type: Date },
