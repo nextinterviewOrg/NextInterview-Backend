@@ -57,6 +57,7 @@ exports.getQuestions = async (req, res) => {
   try {
     // Get query parameters from the request
     const { module_code, topic_code, subtopic_code, question_type, level, question_category } = req.query;
+    const { userId } = req.params
 
     // Create a filter object to build the query based on the optional parameters
     const filter = { isDeleted: false };
@@ -91,11 +92,41 @@ exports.getQuestions = async (req, res) => {
     if (!questions.length) {
       return res.status(404).json({ success: false, message: 'No Questions found' });
     }
+    const questionsWithAttemptStatus = await Promise.all(questions.map(async (question) => {
+      const module = await NewModule.findOne({ module_code: question.module_code });
+      let attempted = false;
+      let attemptDetails = null;
+      const userProgress = await UserMainQuestionBankProgress.findOne({
+        moduleId: module._id,
+        "progress.userId": userId
+      });
+      if (userProgress) {
+        const userAttempt = userProgress.progress[0]?.answered_Questions.find(
+          q => q.questionBankId === question._id.toString()
+        );
 
+        if (userAttempt) {
+          attempted = true;
+          attemptDetails = {
+            answer: userAttempt.answer,
+            finalResult: userAttempt.finalResult,
+            output: userAttempt.output,
+            choosen_option: userAttempt.choosen_option
+          };
+        }
+      }
+
+
+      return {
+        ...question.toObject(),
+        attempted,
+        attemptDetails: attempted ? attemptDetails : null
+      };
+    }));
     // Return the found skill assessments
     return res.status(200).json({
       success: true,
-      data: questions,
+      data: questionsWithAttemptStatus,
     });
 
   } catch (error) {
@@ -790,3 +821,144 @@ exports.getNextQuestion = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 }
+exports.getNextTiyQuestions = async (req, res) => {
+  try {
+    // Get query parameters from the request
+    const { questionId } = req.body;
+
+    const currentQuestion = await MainQuestionBank.findById(questionId);
+    if (!currentQuestion) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    // Create a filter object to build the query based on the optional parameters
+    const filter = { isDeleted: false };
+
+
+    filter.module_code = currentQuestion.module_code;
+
+
+    filter.topic_code = currentQuestion.topic_code;
+
+
+
+    // filter.question_type = currentQuestion.question_type;
+    filter.isTIYQustion = true;
+
+    filter.isDeleted = false;
+    // Fetch the skill assessments using the dynamic filter
+    const questions = await MainQuestionBank.find(filter);
+
+    // Check if any skill assessments are found
+    if (!questions.length) {
+      return res.status(404).json({ success: false, message: 'No Questions found' });
+    }
+
+    const questionIndex = questions.findIndex((q) => {
+
+      return q._id.toString() === questionId
+    });
+    console.log("questionIndex", questionIndex);
+    if (questionIndex === -1) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+    let nextQuestion;
+    if (questionIndex === questions.length - 1) {
+      nextQuestion = questions[0];
+    } else {
+      nextQuestion = questions[questionIndex + 1];
+    }
+    if (nextQuestion._id.toString() === questionId) {
+      return res.status(200).json({ success: false, message: 'No next question found' });
+    }
+    if (!nextQuestion) {
+      return res.status(404).json({ success: false, message: 'No next question found' });
+    }
+    return res.status(200).json({ success: true, data: nextQuestion });
+
+  } catch (error) {
+    // Handle errors (e.g., invalid query parameters)
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error fetching Quetions ',
+      error: error.message,
+    });
+  }
+};
+exports.getNextLevelTiyQuestion = async (req, res) => {
+  try {
+    const { questionId, isTIYQuestion, isQBQuestion } = req.body;
+   
+    let filter = {};
+    if (isTIYQuestion) {
+      filter.isTIYQustion = true;
+    } else if (isQBQuestion) {
+      filter.isQuestionBank = true;
+    }
+    filter.isDeleted = false;
+    filter._id = questionId;
+
+    const currentQuestion = await MainQuestionBank.findOne(filter);
+
+    if (!currentQuestion) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found"
+      });
+    }
+
+    const { question_type, level, _id } = currentQuestion;
+
+    let nextLevel;
+    switch (level) {
+      case 'easy': nextLevel = 'medium'; break;
+      case 'medium':
+      case 'hard':
+      default: nextLevel = 'hard'; break;
+    }
+    let harderQuestionFilter = {};
+    if (isTIYQuestion) {
+      harderQuestionFilter.isTIYQustion = true;
+    } else if (isQBQuestion) {
+      harderQuestionFilter.isQuestionBank = true;
+    }
+    harderQuestionFilter.isDeleted = false;
+    harderQuestionFilter.question_type = question_type;
+    harderQuestionFilter.level = nextLevel;
+    harderQuestionFilter._id = { $ne: _id };
+    harderQuestionFilter.module_code = currentQuestion.module_code;
+    harderQuestionFilter.topic_code = currentQuestion.topic_code;
+
+    let harderQuestions = await MainQuestionBank.aggregate([
+      { $match: { ...harderQuestionFilter, level: nextLevel } },
+      { $sample: { size: 1 } }
+    ]);
+    harderQuestionFilter.level = level;
+    if (!harderQuestions.length) {
+      harderQuestions = await MainQuestionBank.aggregate([
+        { $match: { ...harderQuestionFilter, level } },
+        { $sample: { size: 1 } } // Random selection
+      ]);
+    }
+    if (!harderQuestions.length) {
+      return res.status(200).json({
+        success: false,
+        message: "No suitable question found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: harderQuestions[0]
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};

@@ -83,6 +83,9 @@ exports.createSubscription = async (req, res) => {
       console.log(plan);
       return res.status(400).json({ message: "Invalid or inactive plan" });
     }
+    if (user.subscription_status === "active") {
+      const cancel = await razorpayInstance.subscriptions.cancel(user?.razorpay_subscription_id);
+    }
 
     const subscription = await razorpayInstance.subscriptions.create({
       plan_id: plan.razorpay_plan_id,
