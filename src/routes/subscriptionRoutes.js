@@ -11,4 +11,6 @@ router.get("/getSubscriptionByUserId/:userId", subscriptionController.getUserSub
 router.post("/cancelSubscription", subscriptionController.cancelSubscription);
 router.post("/getAllPayments", subscriptionController.getPaymentsByDuration);
 router.get("/getPaymentSummary", subscriptionController.getPaymentsSummary); 
+router.post("/upgradePlan", subscriptionController.upgradeSubscription); 
+router.delete("/softDelete/:planId", subscriptionController.deletePlanAndRefundUsers);
 module.exports = router;
