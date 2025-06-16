@@ -65,7 +65,7 @@ exports.getAllPlans = async (req, res) => {
   const onlyActive = req.query.active === "true";
 
   const plans = await SubscriptionPlan.find(
-    onlyActive ? { isActive: true } : {}
+   { isActive: true } 
   );
 
   res.json({ success: true, plans });
@@ -381,5 +381,171 @@ exports.getPaymentsSummary = async (req, res) => {
   } catch (error) {
     console.error("Payment summary fetch error:", error);
     res.status(500).json({ success: false, message: "Failed to fetch summary" });
+  }
+};
+
+exports.upgradeSubscription = async (req, res) => {
+  try {
+    const { userId, newPlanId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user || user.subscription_status !== "active") {
+      return res.status(400).json({ success: false, message: "No active subscription found" });
+    }
+
+    const currentSubId = user.razorpay_subscription_id;
+    const currentPlan = await SubscriptionPlan.findOne({ razorpay_plan_id: user.razorpay_plan_id });
+    const newPlan = await SubscriptionPlan.findOne({ razorpay_plan_id: newPlanId });
+
+    if (!newPlan || !newPlan.isActive) {
+      return res.status(400).json({ success: false, message: "Invalid or inactive new plan" });
+    }
+
+    // Fetch subscription and payments
+    const subscription = await razorpayInstance.subscriptions.fetch(currentSubId);
+    const payments = await razorpayInstance.payments.all({ subscription_id: currentSubId });
+
+    const lastPayment = payments.items.find(p => p.status === 'captured');
+    if (!lastPayment) {
+      return res.status(400).json({ success: false, message: "No captured payment found" });
+    }
+
+    // Calculate remaining days
+    const now = moment();
+    const end = moment.unix(subscription.current_end);
+    const start = moment.unix(subscription.current_start);
+    const totalDays = end.diff(start, 'days');
+    const remainingDays = end.diff(now, 'days');
+
+
+    const refundAmount = Math.round((remainingDays / totalDays) * lastPayment.amount);
+
+    // Refund the remaining amount
+    const refund = await razorpayInstance.payments.refund(lastPayment.id, {
+      amount: refundAmount,
+      speed: 'optimum',
+    });
+
+    // Cancel existing subscription
+    await razorpayInstance.subscriptions.cancel(currentSubId);
+
+    // Create new subscription
+    const newSubscription = await razorpayInstance.subscriptions.create({
+      plan_id: newPlan.razorpay_plan_id,
+      customer_notify: 1,
+      total_count: 12,
+    });
+
+    // Update user
+    user.razorpay_plan_id = newPlan.razorpay_plan_id;
+    user.razorpay_subscription_id = newSubscription.id;
+    user.subscription_status = newSubscription.status;
+    user.subscription_start = new Date(newSubscription.start_at * 1000);
+    user.subscription_end = new Date(newSubscription.end_at * 1000);
+    user.subscription_status = "created";
+
+    // user.subscription_renewal_history.push({
+    //   subscription_id: newSubscription.id,
+    //   start_date: new Date(newSubscription.start_at * 1000),
+    //   end_date: new Date(newSubscription.end_at * 1000),
+    //   renewed_at: new Date(),
+    //   status: "active",
+    // });
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Subscription upgraded",
+      refund: refund,
+      newSubscription,
+      subscriptionId: newSubscription.id,
+      subscription: newSubscription,
+    });
+
+  } catch (error) {
+    console.error("Upgrade subscription error:", error);
+    res.status(500).json({ success: false, message: "Subscription upgrade failed" });
+  }
+};
+
+exports.deletePlanAndRefundUsers = async (req, res) => {
+  try {
+    const { planId } = req.params;
+
+    const plan = await SubscriptionPlan.findOne({ razorpay_plan_id: planId });
+    if (!plan) {
+      return res.status(404).json({ success: false, message: "Plan not found" });
+    }
+
+    // Find users actively using this plan
+    const users = await User.find({
+      razorpay_plan_id: planId,
+      subscription_status: "active",
+    });
+
+    const refunds = [];
+
+    for (const user of users) {
+      try {
+        const subscription = await razorpayInstance.subscriptions.fetch(user.razorpay_subscription_id);
+        const payments = await razorpayInstance.payments.all({
+          subscription_id: subscription.id,
+          count: 100,
+        });
+
+        const lastPayment = payments.items.find(p => p.status === "captured");
+        if (!lastPayment) continue;
+
+        const now = moment();
+        const start = moment.unix(subscription.current_start);
+        const end = moment.unix(subscription.current_end);
+
+        const totalDays = end.diff(start, 'days');
+        const remainingDays = end.diff(now, 'days');
+
+        if (remainingDays <= 0 || totalDays <= 0) continue;
+
+        const refundAmount = Math.round((remainingDays / totalDays) * lastPayment.amount);
+
+        // Refund
+        const refund = await razorpayInstance.payments.refund(lastPayment.id, {
+          amount: refundAmount,
+          speed: 'optimum',
+        });
+
+        // Cancel subscription
+        await razorpayInstance.subscriptions.cancel(subscription.id);
+
+        // Update user
+        user.subscription_status = "cancelled";
+        user.subscription_end = new Date();
+        await user.save();
+
+        refunds.push({
+          userId: user._id,
+          refundId: refund.id,
+          refundedAmount: refundAmount / 100,
+        });
+
+      } catch (innerError) {
+        console.error(`Error refunding user ${user._id}:`, innerError.message);
+        continue;
+      }
+    }
+
+    // Finally, delete the plan from DB (note: Razorpay does not support deleting plans from their API)
+    plan.isActive = false;
+    await plan.save();
+
+    res.json({
+      success: true,
+      message: "Plan deleted and eligible users refunded",
+      refundedUsers: refunds,
+    });
+
+  } catch (error) {
+    console.error("Error deleting plan and refunding users:", error);
+    res.status(500).json({ success: false, message: "Server error during plan deletion" });
   }
 };
