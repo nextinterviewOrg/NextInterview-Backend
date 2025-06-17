@@ -564,3 +564,26 @@ exports.getAllPlansStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error while fetching plans" });
   }
 };
+exports.updatePlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, features } = req.body; 
+
+    const plan = await SubscriptionPlan.findById(id);
+    if (!plan) {
+      return res.status(404).json({ success: false, message: "Plan not found" });
+    }
+
+    plan.name = name;
+    plan.description = description;
+    
+    plan.features = features;
+
+    await plan.save();
+
+    res.json({ success: true, message: "Plan updated successfully", plan });
+  } catch (error) {
+    console.error("Error updating plan:", error);
+    res.status(500).json({ success: false, message: "Server error while updating plan" });
+  }
+};
