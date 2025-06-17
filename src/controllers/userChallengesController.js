@@ -105,6 +105,7 @@ exports.createChallenge = async (req, res) => {
       case 'mcq':
         const newChallenge_mcq = new UserChallenges({
           question_type,
+          description,
           option_a,
           option_b,
           option_c,
@@ -125,6 +126,7 @@ exports.createChallenge = async (req, res) => {
       case 'single-line':
         const newChallenge_singleline = new UserChallenges({
           question_type,
+          description,
           QuestionText,
           answer,
           challenge_date
@@ -141,6 +143,7 @@ exports.createChallenge = async (req, res) => {
         const newChallenge_multiline = new UserChallenges({
           question_type,
           QuestionText,
+          description,
           challenge_date,
           answer
         });
@@ -180,7 +183,9 @@ exports.createChallenge = async (req, res) => {
       case 'approach':
         const newChallenge_approach = new UserChallenges({
           question_type,
+          description,
           QuestionText,
+          answer,
           challenge_date
         });
 
@@ -194,7 +199,9 @@ exports.createChallenge = async (req, res) => {
       case 'case-study':
         const newChallenge_caseStudy = new UserChallenges({
           question_type,
+          description,
           QuestionText,
+          answer,
           challenge_date
         });
 
@@ -618,6 +625,189 @@ exports.getAllPastChallengesWithUserResults = async (req, res) => {
       success: true,
       message: "All challenges with user results retrieved successfully",
       data: challengesWithResults
+    });
+
+  } catch (error) {
+    console.error("Error getting challenges with user results:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while retrieving challenges with user results",
+      error: error.message
+    });
+  }
+};
+
+exports.getTodaysChallengesWithNextQuestion = async (req, res) => {
+  try {
+    const { question_type } = req.query;
+    const { userId, questionId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required"
+      });
+    }
+
+    // Get today's date boundaries
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get today's challenges
+    const todaysChallenges = await UserChallenges.find({
+      challenge_date: {
+        $gte: today,
+        $lt: tomorrow
+      },
+      // question_type
+    });
+
+    if (todaysChallenges.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No challenges found for today",
+        data: []
+      });
+    }
+
+    // Get all question IDs for today's challenges
+    const questionIds = todaysChallenges.map(challenge => challenge._id);
+
+    // Get user progress for these questions
+    const userProgress = await UserChallengesProgress.find({
+      questionId: { $in: questionIds },
+      "progress.userId": userId
+    });
+    // Create a map of questionId to user progress for quick lookup
+    const progressMap = new Map();
+    userProgress.forEach(doc => {
+      const userProg = doc.progress.find(p => p.userId.toString() === userId.toString());
+      if (userProg) {
+        progressMap.set(doc.questionId.toString(), {
+          status: userProg.skip ? "skipped" :
+            userProg.answer ? "answered" : "attempted",
+          answer: userProg.answer,
+          finalResult: userProg.finalResult,
+          timestamp: userProg.timestamp
+        });
+      }
+    });
+
+    // Combine challenge data with user status
+    const challengesWithStatus = todaysChallenges.map(challenge => {
+      const progress = progressMap.get(challenge._id.toString());
+      return {
+        ...challenge.toObject(),
+        userStatus: progress ? progress.status : "not attempted",
+        answer: progress ? progress.answer : null,
+        finalResult: progress ? progress.finalResult : null,
+        lastAttempted: progress ? progress.timestamp : null
+      };
+    });
+    const questionIndex = challengesWithStatus.findIndex((q) => q._id.toString() === questionId);
+    let nextQuestion = null;
+    if (questionIndex !== -1) {
+      if(questionIndex === challengesWithStatus.length - 1) {
+        nextQuestion = challengesWithStatus[0];
+      }else{
+        nextQuestion = challengesWithStatus[questionIndex + 1];
+      }
+      
+    }
+    res.status(200).json({
+      success: true,
+      message: "Today's challenges with user status retrieved successfully",
+      nextQuestion: nextQuestion
+    });
+
+  } catch (error) {
+    console.error("Error getting today's challenges:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while retrieving today's challenges",
+      error: error.message
+    });
+  }
+};
+
+exports.getAllPastChallengesNextQuestion = async (req, res) => {
+  try {
+    const { question_type } = req.query;
+    const { userId, questionId } = req.params;
+    console.log("userId", userId, "question_type", question_type);
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID"
+      });
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Get all challenges
+    const allChallenges = await UserChallenges.find({ challenge_date: { $lt: today } }).sort({ uploaded_date: -1 });
+
+    // Get all question IDs
+    const questionIds = allChallenges.map(challenge => challenge._id);
+
+
+    // Get user progress for these questions
+    const userProgress = await UserChallengesProgress.find({
+      questionId: { $in: questionIds },
+      "progress.userId": userId,
+    });
+
+
+    // Create a progress map for quick lookup
+    const progressMap = new Map();
+    userProgress.forEach(doc => {
+      const userProg = doc.progress.find(p => p.userId.toString() === userId.toString());
+      if (userProg) {
+        progressMap.set(doc.questionId.toString(), {
+          status: userProg.skip ? "skipped" :
+            userProg.answer ? "attempted" : "viewed",
+          answer: userProg.answer,
+          isCorrect: userProg.finalResult,
+          timestamp: userProg.timestamp
+        });
+      }
+    });
+
+    // Combine challenge data with user results
+    const challengesWithResults = allChallenges.map(challenge => {
+      const progress = progressMap.get(challenge._id.toString());
+
+      return {
+        challengeId: challenge._id,
+        programming_language: challenge.programming_language,
+        questionText: challenge.QuestionText,
+        description: challenge.description,
+        difficulty: challenge.difficulty,
+        challenge_date: challenge.challenge_date,
+        question_type: challenge.question_type,
+        userStatus: progress ? progress.status : "not attempted",
+        isCorrect: progress ? progress.isCorrect : null,
+        lastAttempted: progress ? progress.timestamp : null,
+        hints: challenge.hints
+      };
+    });
+    const questionIndex = challengesWithResults.findIndex((q) => q.challengeId.toString() === questionId);
+    let nextQuestion = null;
+    if (questionIndex !== -1) {
+      if(questionIndex === challengesWithResults.length - 1) {
+        nextQuestion = challengesWithResults[0];
+      }else{
+        nextQuestion = challengesWithResults[questionIndex + 1];
+      }
+      
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "All challenges with user results retrieved successfully",
+      nextQuestion: nextQuestion
     });
 
   } catch (error) {

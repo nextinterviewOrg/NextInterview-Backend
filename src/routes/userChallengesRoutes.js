@@ -19,4 +19,6 @@ router.delete("/:id", userChallengesController.deleteChallenge);
 router.get("/today/:userId", userChallengesController.getTodaysChallengesWithStatus);
 router.get("/all-with-results/:userId", userChallengesController.getAllChallengesWithUserResults);
 router.get("/allPastChallengesWithResults/:userId", userChallengesController.getAllPastChallengesWithUserResults);
+router.get("/getTodaysNextChallenges/:userId/:questionId", userChallengesController.getTodaysChallengesWithNextQuestion);   
+router.get("/getPastNextChallenges/:userId/:questionId", userChallengesController.getAllPastChallengesNextQuestion); 
 module.exports = router;
