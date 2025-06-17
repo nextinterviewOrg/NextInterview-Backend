@@ -63,12 +63,17 @@ exports.togglePlanStatus = async (req, res) => {
 // GET /api/plans
 exports.getAllPlans = async (req, res) => {
   const onlyActive = req.query.active === "true";
+  try {
+    const plans = await SubscriptionPlan.find(
+      { isActive: true }
+    );
 
-  const plans = await SubscriptionPlan.find(
-   { isActive: true } 
-  );
+    res.json({ success: true, plans });
+  } catch (error) {
+    console.error("Error fetching plans:", error);
+    res.status(500).json({ success: false, message: "Server error while fetching plans" });
+  }
 
-  res.json({ success: true, plans });
 };
 
 exports.createSubscription = async (req, res) => {
@@ -547,5 +552,15 @@ exports.deletePlanAndRefundUsers = async (req, res) => {
   } catch (error) {
     console.error("Error deleting plan and refunding users:", error);
     res.status(500).json({ success: false, message: "Server error during plan deletion" });
+  }
+};
+
+exports.getAllPlansStatus = async (req, res) => {
+  try {
+    const plans = await SubscriptionPlan.find(); // Find all active plans
+    res.json({ success: true, plans }); // Return the list of active plans
+  } catch (error) {
+    console.error("Error fetching plans:", error);
+    res.status(500).json({ success: false, message: "Server error while fetching plans" });
   }
 };
