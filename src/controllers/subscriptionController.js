@@ -132,7 +132,7 @@ exports.getUserSubscription = async (req, res) => {
     const user = await User.findById(userId);
 
 
-    if (!user || !user?.razorpay_subscription_id) {
+    if (!user || !(user?.subscription_status==="active")) {
       return res.status(200).json({ success: false, message: "No active subscription" });
     }
 
@@ -585,5 +585,77 @@ exports.updatePlan = async (req, res) => {
   } catch (error) {
     console.error("Error updating plan:", error);
     res.status(500).json({ success: false, message: "Server error while updating plan" });
+  }
+};
+
+exports.verifyPaymentAndUpdateSubscription = async (req, res) => {
+  const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature,userId } = req.body;
+  
+
+
+  try {
+    // 1. Verify the payment signature first
+    // const generatedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_SECRET)
+    //   .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+    //   .digest('hex');
+
+    // if (generatedSignature !== razorpay_signature) {
+    //   return res.status(400).json({ success: false, message: 'Invalid signature' });
+    // }
+
+    // 2. Verify payment is captured with Razorpay API
+    const payment = await razorpayInstance.payments.fetch(razorpay_payment_id);
+    
+    if (payment.status !== 'captured') {
+      return res.status(200).json({ 
+        success: false, 
+        message: 'Payment not captured', 
+        paymentStatus: payment.status 
+      });
+    }
+
+    // 3. Fetch subscription details
+    const subscription = await razorpayInstance.subscriptions.fetch(razorpay_subscription_id);
+    
+    // 4. Update user in database
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },  
+      {
+        razorpay_payment_id,
+        razorpay_subscription_id,
+        razorpay_plan_id: subscription.plan_id,
+        subscription_status: 'active',
+        subscription_start: new Date(subscription.start_at * 1000), // Convert from Unix timestamp
+        subscription_end: new Date(subscription.end_at * 1000),
+        $push: {
+          subscription_renewal_history: {
+            subscription_id: razorpay_subscription_id,
+            start_date: new Date(subscription.start_at * 1000),
+            end_date: new Date(subscription.end_at * 1000),
+            status: 'active',
+            renewed_at: new Date()
+          }
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Subscription updated successfully',
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error('Error verifying payment and updating subscription:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message 
+    });
   }
 };

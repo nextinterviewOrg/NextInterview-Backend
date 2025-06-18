@@ -53,6 +53,7 @@ const userSchema = new mongoose.Schema({
     }
   },
   // subscription
+  razorpay_payment_id: { type: String },
   razorpay_customer_id: { type: String },         // Razorpay customer ID
   razorpay_subscription_id: { type: String },     // Active subscription ID
   razorpay_plan_id: { type: String },             // Which plan is subscribed
