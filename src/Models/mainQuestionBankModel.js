@@ -98,6 +98,15 @@ const MainQuestionBankSchema = new mongoose.Schema({
         type: String,
         required: false
     },
+    isAvailableForMockInterview: {
+        type: Boolean,
+        default: false,
+    },
+    topicId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Interview_topics",
+        required: false
+    }
 
 })
 
