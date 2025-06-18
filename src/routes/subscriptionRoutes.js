@@ -16,4 +16,5 @@ router.delete("/softDelete/:planId", subscriptionController.deletePlanAndRefundU
 router.get("/getAllPlansStatus", subscriptionController.getAllPlansStatus);
 router.put("/togglePlanStatus/:id", subscriptionController.togglePlanStatus);
 router.put("/updatePlan/:id", subscriptionController.updatePlan);
+router.put("/verifyPayment", subscriptionController.verifyPaymentAndUpdateSubscription);
 module.exports = router;
