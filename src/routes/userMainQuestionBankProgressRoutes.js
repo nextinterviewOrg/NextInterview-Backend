@@ -4,4 +4,5 @@ const userMainQuestionBankController = require("../controllers/userMainQuestionB
 
 router.post("/",userMainQuestionBankController.createUserQuestionBankProgress);
 router.post("/checkQuestionAnswered",userMainQuestionBankController.checkUserAnsweredQuestion);
+router.post("/checkQuestionAnsweredbyId",userMainQuestionBankController.checkUserAnsweredQuestionbyId);
 module.exports = router;
