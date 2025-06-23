@@ -210,3 +210,64 @@ exports.checkUserAnsweredQuestion = async (req, res) => {
         session.endSession();
     }
 };  
+
+exports.checkUserAnsweredQuestionbyId = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const {
+           
+            userId,
+            questionBankId,
+        } = req.body;
+
+        if (!userId || !questionBankId) {
+            await session.abortTransaction();
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
+        const question = await UserMainQuestionBank.findById(questionBankId);
+        if (!question) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "Question not found" });
+        }
+        const module = await NewModule.findOne({ module_code: question.module_code });
+        if (!module) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "Module not found" });
+        }
+        const moduleProgress = await UserMainQuestionBankProgress.findOne({ moduleId: module._id }).session(session);
+        if (!moduleProgress) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "Module not found" });
+        }
+        const userProgress = moduleProgress.progress.find(p => p.userId.equals(userId))
+        if (!userProgress) {
+            await session.abortTransaction();
+            return res.status(404).json({ success: false, message: "User not found in module" });
+        }
+        const existingQuestion = userProgress.answered_Questions.find(q =>
+            q.questionBankId === questionBankId
+        );
+        if (!existingQuestion) {
+            await session.abortTransaction();
+            return res.status(200).json({
+                success: false,
+                message: "Question not answered by user"
+            });
+        }
+        await session.commitTransaction();
+        res.status(200).json({
+            success: true,
+            message: "Question already answered by user",
+            data: existingQuestion
+        });
+    } catch (err) {
+        await session.abortTransaction();
+        console.error(err);
+        res.status(500).json({ success: false, message: "Failed to create UserQuestionBankProgress", error: err.message });
+    }
+    finally {
+        session.endSession();
+    }
+};  
