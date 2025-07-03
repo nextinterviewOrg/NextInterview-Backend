@@ -1,6 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const companyDataController = require("../controllers/companyDataController");
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
+const csvParser = require("csv-parser")
+const storage = multer.diskStorage({
+  // destination: (req, file, cb) => {
+  //   cb(null, "uploads/");
+  // },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
+router.post("/uploadFile", upload.single('file'), companyDataController.uploadCompanies);
 
 // Create a new CompanyData record
 router.post("/", companyDataController.createCompanyData);

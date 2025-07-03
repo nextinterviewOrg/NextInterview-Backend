@@ -1,4 +1,5 @@
 const CompanyData = require("../Models/companyDataModel");
+const { processCompanyCSV } = require("../utils/utils");
 
 // Create a new CompanyData
 exports.createCompanyData = async (req, res) => {
@@ -33,6 +34,26 @@ exports.createCompanyData = async (req, res) => {
       message: "Failed to create company data",
       error: err.message,
     });
+  }
+};
+
+exports.uploadCompanies = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send("No file uploaded.");
+    }
+    processCompanyCSV(req.file.path, CompanyData)
+      .then(() => {
+        res.status(200).send("CSV file processed and data stored in MongoDB.");
+      })
+      .catch((err) => {
+        console.error("Error processing CSV:", err);
+        res.status(500).send("Error processing CSV file.");
+      });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 

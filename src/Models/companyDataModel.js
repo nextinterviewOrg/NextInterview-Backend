@@ -8,6 +8,7 @@ const companyDataSchema = new mongoose.Schema({
   company_description: {
     type: String,
     required: true,
+    default: "",
   },
   company_website: {
     type: String,

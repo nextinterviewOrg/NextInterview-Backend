@@ -218,10 +218,46 @@ async function processMainQuestionBankCSV(filePath, DataModel,) {
       });
   });
 }
+
+async function processCompanyCSV(filePath, DataModel,) {
+  const records = [];
+  console.log("filePath", filePath)
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csvParser())
+      .on("data", (row) => {
+        const data = {
+          company_name: row.name,
+          company_website: row.site_url,
+          company_logo: row.logo_url,
+          company_description: row.domain
+         
+        };
+        records.push(data);
+      })
+      .on("end", () => {
+        DataModel.insertMany(records)
+          .then(() => {
+            console.log("CSV data inserted into MongoDB");
+            resolve();
+          })
+          .catch((err) => {
+            console.error("Error inserting data into MongoDB:", err);
+            reject(err);
+          });
+      })
+      .on("error", (err) => {
+        console.error("Error reading CSV file:", err);
+        reject(err);
+      });
+  });
+}
+
 module.exports = {
   processChallengesCSV,
   processQuestionBankCSV,
   processSkillAssessmentCSV,
   processTIYCSV,
-  processMainQuestionBankCSV
+  processMainQuestionBankCSV,
+  processCompanyCSV
 };
