@@ -2,9 +2,46 @@ const UserChallenges = require("../Models/userChallengesModel");
 const UserChallengesProgress = require("../Models/userChallengesProgresModel");
 const mongoose = require("mongoose");
 
+// Helper function to get the next serial number with robust error handling
+const getNextSerialNo = async () => {
+  try {
+    const latest = await UserChallenges.findOne()
+      .sort({ serialNo: -1 })
+      .select("serialNo")
+      .lean();
+    
+    // If no documents exist, start with 1
+    if (!latest || !latest.serialNo) {
+      return 1;
+    }
+    
+    // Ensure the serialNo is a valid number
+    const nextSerial = parseInt(latest.serialNo, 10);
+    
+    if (isNaN(nextSerial)) {
+      // If existing serialNo is invalid, start fresh
+      return 1;
+    }
+    
+    return nextSerial + 1;
+  } catch (error) {
+    console.error("Error getting next serial number:", error);
+    // Fallback to 1 if there's any error
+    return 1;
+  }
+};
+
 // Create a new challenge
 exports.createChallenge = async (req, res) => {
   try {
+    // Get the next serial number first
+    const nextSerialNo = await getNextSerialNo();
+    
+    // Ensure we have a valid number
+    if (isNaN(nextSerialNo)) {
+      throw new Error("Failed to generate a valid serial number");
+    }
+
     const {
       programming_language,
       QuestionText,
@@ -27,210 +64,98 @@ exports.createChallenge = async (req, res) => {
       solutionCode,
       solutionExplanation
     } = req.body;
+        // Validate required fields
 
-    // Validate required fields
-    if (
-      !QuestionText || !question_type
-    ) {
+    if (!QuestionText || !question_type) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required"
+        message: "Question text and type are required"
       });
     }
+
+    // Validate hints array if provided
     if (hints && Array.isArray(hints)) {
       for (const hint of hints) {
         if (!hint.hint_text) {
           return res.status(400).json({
             success: false,
-            message: "Each hint must have at least a hint_text field"
+            message: "Each hint must have a hint_text field"
           });
         }
       }
     }
+
+    // Validate based on question type
+    let validationError;
     switch (question_type) {
       case 'mcq':
         if (!option_a || !option_b || !option_c || !option_d || !correct_option) {
-          return res.status(400).json({
-            success: false,
-            message: "For MCQ type, all options (a-d) and correct_option are required"
-          });
+          validationError = "For MCQ type, all options (a-d) and correct_option are required";
         }
         break;
-
       case 'single-line':
-        if (!answer) {
-          return res.status(400).json({
-            success: false,
-            message: `For ${question_type} type, answer is required`
-          });
-        }
-        break;
       case 'multi-line':
         if (!answer) {
-          return res.status(400).json({
-            success: false,
-            message: `For ${question_type} type, answer is required`
-          });
+          validationError = `For ${question_type} type, answer is required`;
         }
         break;
       case 'coding':
-        if (question_type === 'coding' && !base_code) {
-          return res.status(400).json({
-            success: false,
-            message: "For coding type, base_code is required"
-          });
-        }
-        if (question_type === 'coding' && !topics) {
-          return res.status(400).json({
-            success: false,
-            message: "For coding type, topics are required"
-          });
-        }
+        if (!base_code) validationError = "For coding type, base_code is required";
+        if (!topics || topics.length === 0) validationError = "For coding type, topics are required";
         break;
-
       case 'approach':
-
       case 'case-study':
-        // Only QuestionText is required (already validated above)
+        // No additional validation needed
         break;
-
       default:
-        return res.status(400).json({
-          success: false,
-          message: "Invalid question type"
-        });
+        validationError = "Invalid question type";
     }
 
-    switch (question_type) {
-      case 'mcq':
-        const newChallenge_mcq = new UserChallenges({
-          question_type,
-          description,
-          option_a,
-          option_b,
-          option_c,
-          option_d,
-          correct_option,
-          QuestionText,
-          challenge_date
-        });
-
-        const savedChallenge_mcq = await newChallenge_mcq.save();
-        res.status(201).json({
-          success: true,
-          message: "Challenge created successfully",
-          data: savedChallenge_mcq
-        })
-        break;
-
-      case 'single-line':
-        const newChallenge_singleline = new UserChallenges({
-          question_type,
-          description,
-          QuestionText,
-          answer,
-          challenge_date
-        });
-
-        const savedChallenge_singleline = await newChallenge_singleline.save();
-        res.status(201).json({
-          success: true,
-          message: "Challenge created successfully",
-          data: savedChallenge_singleline
-        })
-        break;
-      case 'multi-line':
-        const newChallenge_multiline = new UserChallenges({
-          question_type,
-          QuestionText,
-          description,
-          challenge_date,
-          answer
-        });
-
-        const savedChallenge_multiline = await newChallenge_multiline.save();
-        res.status(201).json({
-          success: true,
-          message: "Challenge created successfully",
-          data: savedChallenge_multiline
-        });
-        break;
-      case 'coding':
-        const newChallenge = new UserChallenges({
-          question_type,
-          programming_language,
-          QuestionText,
-          description,
-          input,
-          output,
-          difficulty,
-          topics,
-          hints,
-          challenge_date,
-          base_code,
-          dbSetupCommands,
-          solutionCode,
-          solutionExplanation
-        });
-        const savedChallenge = await newChallenge.save();
-        res.status(201).json({
-          success: true,
-          message: "Challenge created successfully",
-          data: savedChallenge
-        });
-        break;
-
-      case 'approach':
-        const newChallenge_approach = new UserChallenges({
-          question_type,
-          description,
-          QuestionText,
-          answer,
-          challenge_date
-        });
-
-        const savedChallenge_approach = await newChallenge_approach.save();
-        res.status(201).json({
-          success: true,
-          message: "Challenge created successfully",
-          data: savedChallenge_approach
-        })
-        break;
-      case 'case-study':
-        const newChallenge_caseStudy = new UserChallenges({
-          question_type,
-          description,
-          QuestionText,
-          answer,
-          challenge_date
-        });
-
-        const savedChallenge_caseStudy = await newChallenge_caseStudy.save();
-        res.status(201).json({
-          success: true,
-          message: "Challenge created successfully",
-          data: savedChallenge_caseStudy
-        })
-        // No additional fields needed
-        break;
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError
+      });
     }
 
-    // const newChallenge = new UserChallenges({
-    //   programming_language,
-    //   QuestionText,
-    //   description,
-    //   input,
-    //   output,
-    //   difficulty,
-    //   hints
-    // });
+    // Create the challenge object with the serial number
+    const challengeData = {
+      serialNo: Number(nextSerialNo), // Explicitly convert to Number
+      question_type,
+      QuestionText,
+      description,
+      challenge_date: challenge_date || new Date(),
+      ...(question_type === 'mcq' && {
+        option_a, option_b, option_c, option_d, correct_option
+      }),
+      ...(['single-line', 'multi-line', 'approach', 'case-study'].includes(question_type) && {
+        answer
+      }),
+      ...(question_type === 'coding' && {
+        programming_language,
+        input,
+        output,
+        difficulty,
+        hints,
+        topics,
+        base_code,
+        dbSetupCommands,
+        solutionCode,
+        solutionExplanation
+      })
+    };
+    console.log( "challengeData", challengeData);
 
-    // const savedChallenge = await newChallenge.save();
-    // res.status(201).json({
-    //   success: true,
-    //   message: "Challenge created successfully",
-    //   data: savedChallenge
-    // });
+    // Create and save the new challenge
+    const newChallenge = new UserChallenges(challengeData);
+    const savedChallenge = await newChallenge.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Challenge created successfully",
+      data: savedChallenge
+    });
+
   } catch (error) {
     console.error("Error creating challenge:", error);
     res.status(500).json({
@@ -244,19 +169,11 @@ exports.createChallenge = async (req, res) => {
 // Get all challenges
 exports.getAllChallenges = async (req, res) => {
   try {
-    const challenges = await UserChallenges.find().sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      message: "Challenges retrieved successfully",
-      data: challenges
-    });
+    const challenges = await UserChallenges.find().sort({ serialNo: 1 });
+    res.status(200).json({ data: challenges });
   } catch (error) {
     console.error("Error fetching challenges:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching challenges",
-      error: error.message
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -346,7 +263,7 @@ exports.updateChallenge = async (req, res) => {
       {
         new: true,
         runValidators: true,
-        context: 'query' // Ensures validators run with the correct this context
+        context: 'query'
       }
     );
 
@@ -372,30 +289,40 @@ exports.updateChallenge = async (req, res) => {
   }
 };
 
-// Delete a challenge
+// Delete challenge
 exports.deleteChallenge = async (req, res) => {
   try {
-    const deletedChallenge = await UserChallenges.findByIdAndDelete(
-      req.params.id
+    const challengeToDelete = await UserChallenges.findById(req.params.id);
+    if (!challengeToDelete) return res.status(404).json({ success: false, message: "Challenge not found" });
+
+    const deletedSerialNo = challengeToDelete.serialNo;
+    await challengeToDelete.deleteOne();
+
+    // Update serial numbers of remaining challenges
+    await UserChallenges.updateMany(
+      { serialNo: { $gt: deletedSerialNo } },
+      { $inc: { serialNo: -1 } }
     );
-    if (!deletedChallenge) {
-      return res.status(404).json({
-        success: false,
-        message: "Challenge not found"
-      });
-    }
-    res.status(200).json({
-      success: true,
-      message: "Challenge deleted successfully",
-      data: deletedChallenge
-    });
+
+    res.status(200).json({ success: true, message: "Challenge deleted and serial numbers updated", data: challengeToDelete });
   } catch (error) {
     console.error("Error deleting challenge:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while deleting challenge",
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: "Server error while deleting challenge", error: error.message });
+  }
+};
+
+// One-time migration to assign serial numbers to existing documents
+exports.assignSerialNumbers = async (req, res) => {
+  try {
+    const challenges = await UserChallenges.find().sort({ uploaded_date: 1 });
+    for (let i = 0; i < challenges.length; i++) {
+      challenges[i].serialNo = i + 1;
+      await challenges[i].save();
+    }
+    res.status(200).json({ message: "Serial numbers assigned successfully." });
+  } catch (error) {
+    console.error("Error assigning serial numbers:", error);
+    res.status(500).json({ message: "Server error during serial number assignment." });
   }
 };
 
@@ -422,9 +349,8 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
       challenge_date: {
         $gte: today,
         $lt: tomorrow
-      },
-      // question_type
-    });
+      }
+    }).sort({ serialNo: 1 }); // Optional: sort by serialNo
 
     if (todaysChallenges.length === 0) {
       return res.status(200).json({
@@ -434,15 +360,13 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
       });
     }
 
-    // Get all question IDs for today's challenges
     const questionIds = todaysChallenges.map(challenge => challenge._id);
 
-    // Get user progress for these questions
     const userProgress = await UserChallengesProgress.find({
       questionId: { $in: questionIds },
       "progress.userId": userId
     });
-    // Create a map of questionId to user progress for quick lookup
+
     const progressMap = new Map();
     userProgress.forEach(doc => {
       const userProg = doc.progress.find(p => p.userId.toString() === userId.toString());
@@ -457,11 +381,17 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
       }
     });
 
-    // Combine challenge data with user status
     const challengesWithStatus = todaysChallenges.map(challenge => {
       const progress = progressMap.get(challenge._id.toString());
       return {
-        ...challenge.toObject(),
+        _id: challenge._id,
+        serialNo: challenge.serialNo, // explicitly including serialNo
+        QuestionText: challenge.QuestionText,
+        programming_language: challenge.programming_language,
+        description: challenge.description,
+        input: challenge.input,
+        output: challenge.output,
+        challenge_date: challenge.challenge_date,
         userStatus: progress ? progress.status : "not attempted",
         answer: progress ? progress.answer : null,
         finalResult: progress ? progress.finalResult : null,
@@ -485,11 +415,11 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
   }
 };
 
+
 exports.getAllChallengesWithUserResults = async (req, res) => {
   try {
     const { question_type } = req.query;
     const { userId } = req.params;
-    console.log("userId", userId, "question_type", question_type);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -503,14 +433,12 @@ exports.getAllChallengesWithUserResults = async (req, res) => {
 
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
-    console.log("questionIds", questionIds);
 
     // Get user progress for these questions
     const userProgress = await UserChallengesProgress.find({
       questionId: { $in: questionIds },
       "progress.userId": userId,
     });
-
 
     // Create a progress map for quick lookup
     const progressMap = new Map();
@@ -559,11 +487,11 @@ exports.getAllChallengesWithUserResults = async (req, res) => {
     });
   }
 };
+
 exports.getAllPastChallengesWithUserResults = async (req, res) => {
   try {
     const { question_type } = req.query;
     const { userId } = req.params;
-    console.log("userId", userId, "question_type", question_type);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -579,13 +507,11 @@ exports.getAllPastChallengesWithUserResults = async (req, res) => {
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
 
-
     // Get user progress for these questions
     const userProgress = await UserChallengesProgress.find({
       questionId: { $in: questionIds },
       "progress.userId": userId,
     });
-
 
     // Create a progress map for quick lookup
     const progressMap = new Map();
@@ -660,8 +586,7 @@ exports.getTodaysChallengesWithNextQuestion = async (req, res) => {
       challenge_date: {
         $gte: today,
         $lt: tomorrow
-      },
-      // question_type
+      }
     });
 
     if (todaysChallenges.length === 0) {
@@ -680,6 +605,7 @@ exports.getTodaysChallengesWithNextQuestion = async (req, res) => {
       questionId: { $in: questionIds },
       "progress.userId": userId
     });
+
     // Create a map of questionId to user progress for quick lookup
     const progressMap = new Map();
     userProgress.forEach(doc => {
@@ -706,16 +632,17 @@ exports.getTodaysChallengesWithNextQuestion = async (req, res) => {
         lastAttempted: progress ? progress.timestamp : null
       };
     });
+    
     const questionIndex = challengesWithStatus.findIndex((q) => q._id.toString() === questionId);
     let nextQuestion = null;
     if (questionIndex !== -1) {
-      if(questionIndex === challengesWithStatus.length - 1) {
+      if (questionIndex === challengesWithStatus.length - 1) {
         nextQuestion = challengesWithStatus[0];
-      }else{
+      } else {
         nextQuestion = challengesWithStatus[questionIndex + 1];
       }
-      
     }
+    
     res.status(200).json({
       success: true,
       message: "Today's challenges with user status retrieved successfully",
@@ -736,7 +663,6 @@ exports.getAllPastChallengesNextQuestion = async (req, res) => {
   try {
     const { question_type } = req.query;
     const { userId, questionId } = req.params;
-    console.log("userId", userId, "question_type", question_type);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
@@ -752,13 +678,11 @@ exports.getAllPastChallengesNextQuestion = async (req, res) => {
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
 
-
     // Get user progress for these questions
     const userProgress = await UserChallengesProgress.find({
       questionId: { $in: questionIds },
       "progress.userId": userId,
     });
-
 
     // Create a progress map for quick lookup
     const progressMap = new Map();
@@ -793,15 +717,15 @@ exports.getAllPastChallengesNextQuestion = async (req, res) => {
         hints: challenge.hints
       };
     });
+    
     const questionIndex = challengesWithResults.findIndex((q) => q.challengeId.toString() === questionId);
     let nextQuestion = null;
     if (questionIndex !== -1) {
-      if(questionIndex === challengesWithResults.length - 1) {
+      if (questionIndex === challengesWithResults.length - 1) {
         nextQuestion = challengesWithResults[0];
-      }else{
+      } else {
         nextQuestion = challengesWithResults[questionIndex + 1];
       }
-      
     }
 
     res.status(200).json({

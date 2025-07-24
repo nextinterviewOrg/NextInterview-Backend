@@ -531,6 +531,49 @@ exports.addPastInterview = async (req, res) => {
   }
 };
 
+exports.deletePastInterview = async (req, res) => {
+  try {
+    const { user_id, interview_id } = req.params;
+
+    const user = await Questionnaire.findOne({ user_id });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const initialLength = user.data_past_interview_response.length;
+
+    // Remove the interview with matching _id
+    user.data_past_interview_response = user.data_past_interview_response.filter(
+      (interview) => interview._id.toString() !== interview_id
+    );
+
+    if (user.data_past_interview_response.length === initialLength) {
+      return res.status(404).json({
+        success: false,
+        message: "Interview not found",
+      });
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Past interview deleted successfully",
+      data: user.data_past_interview_response,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+
 
 
 // Function to get user details by session ID
