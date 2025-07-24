@@ -225,8 +225,16 @@ exports.updateChallenge = async (req, res) => {
       isDeleted,
       dbSetupCommands,
       solutionCode,
-      solutionExplanation
+      solutionExplanation,
+      challenge_date
     } = req.body;
+
+       if (challenge_date && isNaN(Date.parse(challenge_date))) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid challenge_date format. Please use a valid ISO date string (e.g. 2025-07-22T00:00:00.000Z)."
+      });
+    }
 
     const updateData = {
       programming_language,
@@ -248,7 +256,8 @@ exports.updateChallenge = async (req, res) => {
       isDeleted,
       dbSetupCommands,
       solutionCode,
-      solutionExplanation
+      solutionExplanation,
+      challenge_date
     };
 
     Object.keys(updateData).forEach(key => {
