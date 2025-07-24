@@ -203,7 +203,7 @@ exports.updateModuleDataByID = async (req, res) => {
         // If topic exists in original module, preserve its code
         const existingTopic = existingModule.topicData[index];
         const topicCode = existingTopic ? existingTopic.topic_code : generateNextCode(existingModule.module_code + "A000", "topic");
-        
+
         return {
           ...topic,
           topic_code: topicCode,
@@ -211,7 +211,7 @@ exports.updateModuleDataByID = async (req, res) => {
             // If subtopic exists in original module, preserve its code
             const existingSubtopic = existingTopic?.subtopicData[subIndex];
             const subtopicCode = existingSubtopic ? existingSubtopic.subtopic_code : generateNextCode(topicCode + "A000", "subtopic");
-            
+
             return {
               ...subtopic,
               subtopic_code: subtopicCode,
@@ -335,10 +335,17 @@ exports.getSubtopicCodesByModuleAndTopicCode = async (req, res) => {
   }
 };
 
+// Assuming 'NewModule' is your Mongoose model for modules
 exports.softDeleteModule = async (req, res) => {
   try {
-    const id = req.params.id;
-    const moduleData = await NewModule.findOneAndUpdate({ module_code: id }, { $set: { isDeleted: true } }, { new: true });
+    const moduleCode = req.params.id; // Get the module_code from URL parameters
+
+    // Use findOneAndUpdate to query by module_code and update
+    const moduleData = await NewModule.findOneAndUpdate(
+      { module_code: moduleCode }, // Query condition: find by module_code
+      { $set: { isDeleted: true } }, // Update: set isDeleted to true
+      { new: true } // Options: return the updated document
+    );
 
     if (!moduleData) {
       return res.status(404).json({
@@ -350,10 +357,10 @@ exports.softDeleteModule = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Module deleted successfully",
-      moduleData: moduleData
+      moduleData: moduleData,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error during soft delete:", error); // More specific error logging
     res.status(500).json({
       success: false,
       message: "Failed to delete module",
@@ -524,11 +531,11 @@ exports.getFavoriteTopics = async (req, res) => {
 exports.getModuleDetailsByCode = async (req, res) => {
   try {
     const { moduleId } = req.params; // Assuming module_code is passed as a URL parameter
-    
+
     // Find the module by code, excluding deleted modules
     const module = await NewModule.findOne(
       { _id: moduleId, isDeleted: false },
-      { 
+      {
         moduleName: 1,
         module_code: 1,
         "topicData.topicName": 1,
