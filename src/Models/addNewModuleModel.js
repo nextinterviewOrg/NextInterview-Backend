@@ -9,6 +9,7 @@ const newModuleSchema = new mongoose.Schema(
     interviewSampleURL: String,
     courseOverview: String,
     module_code: String,
+    cheatSheetURL: String, // Moved from subtopic level to module level
     isDeleted: {
       type: Boolean,
       default: false,
@@ -30,7 +31,7 @@ const newModuleSchema = new mongoose.Schema(
             subtopicContent: String,
             subtopicSummary: String,
             revisionPoints: String,
-            cheatSheetURL: String,
+            // cheatSheetURL: String, // REMOVED from subtopic level
             interviewFavorite: Boolean,
             conceptClarifier: [
               {

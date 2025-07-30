@@ -93,6 +93,7 @@ const tiyQbCodingProgressRoutes = require("./src/routes/tiyQbCodingQuestionProgr
 const questionBankCategoryRoutes= require("./src/routes/questionBankCategoryRoutes");
 const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
 const interviewTopicsRoutes = require("./src/routes/interviewtopicRoutes");
+const dashboardRoutes = require("./src/routes/dashboardRoutes");
 
 app.use("/users", userRoutes);
 app.use("/jobResponse", jobResponseRoutes);
@@ -143,6 +144,6 @@ app.use("/tiyQbCodingProgress", tiyQbCodingProgressRoutes);
 app.use("/questionBankCategory", questionBankCategoryRoutes);
 app.use("/subscription", subscriptionRoutes);
 app.use("/interviewTopics", interviewTopicsRoutes);
-
+app.use("/dashboard", dashboardRoutes);
 
 
