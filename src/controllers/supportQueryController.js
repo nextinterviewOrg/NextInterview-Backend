@@ -102,10 +102,46 @@ const getSupportQueryStats = async (req, res) => {
 };
 
 
+const addAdminMessageToSupportQuery = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ message: "Message is required." });
+    }
+
+    const query = await SupportQuery.findById(id);
+    if (!query) {
+      return res.status(404).json({ message: "Support query not found." });
+    }
+
+    // Add admin message to the communication log
+    query.communicationLog.push({
+      date: new Date(),
+      message: message,
+    });
+
+    // Optionally update status
+    query.status = "answered";
+
+    await query.save();
+
+    res.status(200).json({
+      message: "Admin response added to communication log.",
+      data: query,
+    });
+  } catch (error) {
+    console.error("Error adding message:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 module.exports = {
     createSupportQuery,
     getSupportQueryById,
     updateSupportQuery,
     getAllSupportQuery,
     getSupportQueryStats,
+    addAdminMessageToSupportQuery
 };
