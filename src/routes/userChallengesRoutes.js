@@ -21,4 +21,5 @@ router.get("/all-with-results/:userId", userChallengesController.getAllChallenge
 router.get("/allPastChallengesWithResults/:userId", userChallengesController.getAllPastChallengesWithUserResults);
 router.get("/getTodaysNextChallenges/:userId/:questionId", userChallengesController.getTodaysChallengesWithNextQuestion);   
 router.get("/getPastNextChallenges/:userId/:questionId", userChallengesController.getAllPastChallengesNextQuestion); 
+router.delete("/softdelete/:id", userChallengesController.softdeleteChallenge);
 module.exports = router;

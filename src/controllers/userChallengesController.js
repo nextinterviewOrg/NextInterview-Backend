@@ -169,7 +169,7 @@ exports.createChallenge = async (req, res) => {
 // Get all challenges
 exports.getAllChallenges = async (req, res) => {
   try {
-    const challenges = await UserChallenges.find().sort({ serialNo: 1 });
+const challenges = await UserChallenges.find({ isDeleted: { $ne: true } }).sort({ serialNo: 1 });
     res.status(200).json({ data: challenges });
   } catch (error) {
     console.error("Error fetching challenges:", error);
@@ -355,6 +355,7 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
 
     // Get today's challenges
     const todaysChallenges = await UserChallenges.find({
+       isDeleted: { $ne: true },
       challenge_date: {
         $gte: today,
         $lt: tomorrow
@@ -438,7 +439,10 @@ exports.getAllChallengesWithUserResults = async (req, res) => {
     }
 
     // Get all challenges
-    const allChallenges = await UserChallenges.find({ question_type: question_type }).sort({ uploaded_date: -1 });
+const allChallenges = await UserChallenges.find({
+  isDeleted: { $ne: true },
+  question_type: question_type
+}).sort({ uploaded_date: -1 });
 
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
@@ -511,7 +515,10 @@ exports.getAllPastChallengesWithUserResults = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     // Get all challenges
-    const allChallenges = await UserChallenges.find({ challenge_date: { $lt: today } }).sort({ uploaded_date: -1 });
+const allChallenges = await UserChallenges.find({
+  isDeleted: { $ne: true },
+  challenge_date: { $lt: today }
+}).sort({ uploaded_date: -1 });
 
     // Get all question IDs
     const questionIds = allChallenges.map(challenge => challenge._id);
@@ -749,6 +756,41 @@ exports.getAllPastChallengesNextQuestion = async (req, res) => {
       success: false,
       message: "Server error while retrieving challenges with user results",
       error: error.message
+    });
+  }
+};
+
+exports.softdeleteChallenge = async (req, res) => {
+  try {
+    const challengeToDelete = await UserChallenges.findById(req.params.id);
+
+    if (!challengeToDelete)
+      return res.status(404).json({ success: false, message: "Challenge not found" });
+
+    const deletedSerialNo = challengeToDelete.serialNo;
+
+    // Soft delete
+    challengeToDelete.isDeleted = true;
+    challengeToDelete.deletedAt = new Date();
+    await challengeToDelete.save();
+
+    // Update serial numbers of remaining active challenges
+    await UserChallenges.updateMany(
+      { serialNo: { $gt: deletedSerialNo }, isDeleted: false },
+      { $inc: { serialNo: -1 } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Challenge soft-deleted and serial numbers updated",
+      data: challengeToDelete
+    });
+  } catch (error) {
+    console.error("Error soft-deleting challenge:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while soft-deleting challenge",
+      error: error.message,
     });
   }
 };

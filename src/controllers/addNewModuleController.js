@@ -110,23 +110,23 @@ exports.createNewModule = async (req, res) => {
 
 // Fetch Module Data
 exports.getModuleData = async (req, res) => {
-  try {
+try {
     {
-      const moduleData = await NewModule.find({ isDeleted: false });
+      const moduleData = await NewModule.find({ isDeleted: { $ne: true } });
 
-      res.status(200).json({
-        success: true,
-        data: moduleData,
-      });
+res.status(200).json({
+success: true,
+data: moduleData,
+});
     }
-  } catch (error) {
+ } catch (error) { 
     console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch module data",
+res.status(500).json({
+ success: false,
+message: "Failed to fetch module data",
       error: err.message,
-    });
-  }
+});
+ }
 };
 // Delete Module Data
 exports.deleteModule = async (req, res) => {
@@ -338,14 +338,8 @@ exports.getSubtopicCodesByModuleAndTopicCode = async (req, res) => {
 // Assuming 'NewModule' is your Mongoose model for modules
 exports.softDeleteModule = async (req, res) => {
   try {
-    const moduleCode = req.params.id; // Get the module_code from URL parameters
-
-    // Use findOneAndUpdate to query by module_code and update
-    const moduleData = await NewModule.findOneAndUpdate(
-      { module_code: moduleCode }, // Query condition: find by module_code
-      { $set: { isDeleted: true } }, // Update: set isDeleted to true
-      { new: true } // Options: return the updated document
-    );
+        const id = req.params.id;
+    const moduleData = await NewModule.findOneAndUpdate({ module_code: id }, { $set: { isDeleted: true } }, { new: true });
 
     if (!moduleData) {
       return res.status(404).json({
