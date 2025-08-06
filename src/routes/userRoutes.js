@@ -1,7 +1,7 @@
 const e = require("express");
 const express = require("express");
 const router = express.Router();
-const { createUser, getUsers, createUserProfile, getUserByClerkId, lockUser, unlocklockUser, resetPassword, updateUser, getUserQuestionariesByUserId, addPastInterview,deletePastInterview, getUserIdBySession, createAdmins, deleteAdmins,getAllAdmins } = require("../controllers/userController");
+const { createUser, getUsers, createUserProfile, getUserByClerkId, lockUser, unlocklockUser, resetPassword, updateUser, getUserQuestionariesByUserId, addPastInterview,deletePastInterview, getUserIdBySession, createAdmins, deleteAdmins,getAllAdmins, updatePastInterview } = require("../controllers/userController");
 const bodyParser = require('body-parser');
 // const { ClerkExpressWithAuth } =require ('@clerk/clerk-sdk-node')
 const authorizeRole = require('../middleware/authorizeRole');
@@ -24,6 +24,7 @@ router.post("/updateUser", upload.single('user_profile_pic'), updateUser);
 router.get("/userQuationaries/:id", getUserQuestionariesByUserId);
 router.post("/updateUser/addPastInterview/:user_id", addPastInterview);
 router.delete("/updateUser/:user_id/past-interviews/:interview_id", deletePastInterview);
+router.put("/updatePastinterview/:user_id/past-interviews/:interview_id", updatePastInterview);
 router.post("/getUserBySessionId", getUserIdBySession);
 router.post("/createAdmins", createAdmins);
 router.delete("/deleteUser/", deleteAdmins);
