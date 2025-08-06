@@ -573,6 +573,51 @@ exports.deletePastInterview = async (req, res) => {
   }
 };
 
+exports.updatePastInterview = async (req, res) => {
+  try {
+    const { user_id, interview_id } = req.params;
+    const { date_attended, company_Name, designation, topics, what_went_well, what_went_bad } = req.body;
+
+    const user = await Questionnaire.findOne({ user_id: user_id });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Find the interview by ID
+    const interview = user.data_past_interview_response.id(interview_id);
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: "Interview record not found",
+      });
+    }
+
+    // Update the interview fields
+    interview.date_attended = date_attended || interview.date_attended;
+    interview.company_Name = company_Name || interview.company_Name;
+    interview.designation = designation || interview.designation;
+    interview.topics = topics || interview.topics;
+    interview.what_went_well = what_went_well || interview.what_went_well;
+    interview.what_went_bad = what_went_bad || interview.what_went_bad;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Interview updated successfully",
+      data: user,
+    });
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
 
 
 
