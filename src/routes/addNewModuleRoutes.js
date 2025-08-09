@@ -12,6 +12,7 @@ router.get("/", addNewModuleController.getModuleData);
 // DELETE CALL to delete module
 router.delete("/:id", addNewModuleController.deleteModule);
 // GET CALL to fetch data by ID
+router.get("/modules-with-revision-points", addNewModuleController.getModulesWithRevisionPoints);
 router.get("/:id", addNewModuleController.getModuleDataByID);
 router.put("/:id", addNewModuleController.updateModuleDataByID);
 router.get("/get/moduleCode",addNewModuleController.getAllModuleCodes)
@@ -23,5 +24,6 @@ router.post("/getModuleTopicLastSubtopic",addNewModuleController.getModuleTopicL
 router.get("/getModule/:moduleCode",addNewModuleController.getModuleByModuleCode);
 router.get("/get/InterviewFavorites",addNewModuleController.getFavoriteTopics);
 router.get("/moduleTopics/:moduleId", addNewModuleController.getModuleDetailsByCode);
+
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const MainQuestionBank = require("../Models/mainQuestionBankModel");
+const mongoose = require("mongoose");
 const fs = require("fs");
 const csvParser = require("csv-parser");
 const { processMainQuestionBankCSV } = require("../utils/utils");
@@ -153,15 +154,26 @@ exports.getQuestionByID = async (req, res) => {
 };
 exports.softDeleteQuestion = async (req, res) => {
   try {
-    const question = await MainQuestionBank.findById(req.params.id);
-    if (!question) {
+    const { id } = req.params;
+
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid question ID' });
+    }
+
+    // Soft delete using updateOne to avoid triggering validation
+    const result = await MainQuestionBank.updateOne(
+      { _id: id },
+      { $set: { isDeleted: true } }
+    );
+
+    if (result.matchedCount === 0) {
       return res.status(404).json({ success: false, message: 'Question not found' });
     }
-    question.isDeleted = true;
-    await question.save();
+
     return res.status(200).json({ success: true, message: 'Question deleted successfully' });
   } catch (error) {
-    console.error(error);
+    console.error('Soft delete error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -889,7 +901,7 @@ exports.getNextTiyQuestions = async (req, res) => {
 exports.getNextLevelTiyQuestion = async (req, res) => {
   try {
     const { questionId, isTIYQuestion, isQBQuestion } = req.body;
-   
+
     let filter = {};
     if (isTIYQuestion) {
       filter.isTIYQustion = true;

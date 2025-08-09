@@ -128,6 +128,73 @@ message: "Failed to fetch module data",
 });
  }
 };
+
+exports.getModulesWithRevisionPoints = async (req, res) => {
+  try {
+    // Using aggregation for better performance
+    const modules = await NewModule.aggregate([
+      // First match non-deleted modules
+      { $match: { isDeleted: { $ne: true } } },
+      
+      // Unwind the topicData array
+      { $unwind: "$topicData" },
+      
+      // Unwind the subtopicData array
+      { $unwind: "$topicData.subtopicData" },
+      
+      // Match only subtopics with non-empty revisionPoints
+      { $match: { 
+        "topicData.subtopicData.revisionPoints": { 
+          $exists: true, 
+          $ne: null, 
+          $ne: "" 
+        }
+      }},
+      
+      // Group back by module ID
+      {
+        $group: {
+          _id: "$_id",
+          root: { $first: "$$ROOT" }, // Preserve the original document structure
+          topics: { $push: "$topicData" } // Collect all matching topics
+        }
+      },
+      
+      // Reconstruct the topicData array with only matching topics
+      {
+        $addFields: {
+          "root.topicData": "$topics"
+        }
+      },
+      
+      // Replace root with the reconstructed document
+      {
+        $replaceRoot: { newRoot: "$root" }
+      },
+      
+      // Optional: Filter out any documents that might have empty topicData after filtering
+      {
+        $match: {
+          "topicData.0": { $exists: true }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: modules,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch modules with revision points",
+      error: error.message,
+    });
+  }
+};
+
+
 // Delete Module Data
 exports.deleteModule = async (req, res) => {
   try {
