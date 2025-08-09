@@ -8,7 +8,7 @@ const MainQuestionBankSchema = new mongoose.Schema({
     question_type: {
         type: String,
         required: true,
-        enum: ['mcq', 'single-line', 'multi-line', 'approach', 'coding'],  // Enum for unit
+        enum: ['mcq', 'single-line', 'multi-line', 'approach', 'coding', 'case-study'],  // Enum for unit
         message: 'question type must be one of the following: mcq, single-line, multi-line, approach'
     },
     programming_language: {
