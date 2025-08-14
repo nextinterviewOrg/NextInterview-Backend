@@ -375,6 +375,8 @@ exports.speechToText = async (req, res) => {
                     Authorization: `Bearer ${process.env.GPT_API_KEY_AI}`,
                     'Content-Type': 'multipart/form-data',
                 },
+
+                maxBodyLength: 100 * 1024 * 1024, // 100MB for large files
             }
         );
         console.log(response);
