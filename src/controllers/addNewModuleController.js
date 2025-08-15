@@ -264,26 +264,59 @@ exports.updateModuleDataByID = async (req, res) => {
       });
     }
 
-    // Preserve existing codes while updating topics and subtopics
+    // Preserve the module code
+    updateData.module_code = existingModule.module_code;
+
+    // Process topic data if it exists in the update
     if (updateData.topicData) {
+      // Find the last topic code in existing module to continue numbering
+      let lastTopicCode = existingModule.topicData.length > 0 
+        ? existingModule.topicData[existingModule.topicData.length - 1].topic_code 
+        : existingModule.module_code + "A000";
+
       updateData.topicData = updateData.topicData.map((topic, index) => {
         // If topic exists in original module, preserve its code
-        const existingTopic = existingModule.topicData[index];
-        const topicCode = existingTopic ? existingTopic.topic_code : generateNextCode(existingModule.module_code + "A000", "topic");
+        const existingTopic = index < existingModule.topicData.length 
+          ? existingModule.topicData[index] 
+          : null;
+
+        // Use existing code if available, otherwise generate next code
+        const topicCode = existingTopic 
+          ? existingTopic.topic_code 
+          : generateNextCode(lastTopicCode, "topic");
+        
+        // Update lastTopicCode for next iteration
+        lastTopicCode = topicCode;
+
+        // Process subtopics
+        let lastSubtopicCode = existingTopic && existingTopic.subtopicData.length > 0
+          ? existingTopic.subtopicData[existingTopic.subtopicData.length - 1].subtopic_code
+          : topicCode + "A000";
+
+        const subtopicData = topic.subtopicData.map((subtopic, subIndex) => {
+          // If subtopic exists in original module, preserve its code
+          const existingSubtopic = existingTopic && subIndex < existingTopic.subtopicData.length
+            ? existingTopic.subtopicData[subIndex]
+            : null;
+
+          // Use existing code if available, otherwise generate next code
+          const subtopicCode = existingSubtopic
+            ? existingSubtopic.subtopic_code
+            : generateNextCode(lastSubtopicCode, "subtopic");
+          
+          // Update lastSubtopicCode for next iteration
+          lastSubtopicCode = subtopicCode;
+
+          return {
+            ...subtopic,
+            subtopic_code: subtopicCode,
+          };
+        });
 
         return {
           ...topic,
           topic_code: topicCode,
-          subtopicData: topic.subtopicData.map((subtopic, subIndex) => {
-            // If subtopic exists in original module, preserve its code
-            const existingSubtopic = existingTopic?.subtopicData[subIndex];
-            const subtopicCode = existingSubtopic ? existingSubtopic.subtopic_code : generateNextCode(topicCode + "A000", "subtopic");
-
-            return {
-              ...subtopic,
-              subtopic_code: subtopicCode,
-            };
-          }),
+          subtopicData: subtopicData,
         };
       });
     }

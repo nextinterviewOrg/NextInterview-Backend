@@ -1,10 +1,15 @@
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser"); // Add this line
 const connectDB = require("./src/config/dbConfig");
 require("dotenv").config();
 const { Webhook } = require("svix");
 const { setupCronJobs } = require("./src/jobs/runJobs");
 const app = express();
+
+app.use(bodyParser.json({ limit: '2046mb' }));
+app.use(bodyParser.urlencoded({ limit: '2046mb', extended: true }));
+
 app.use(express.json());
 // app.use(cors());
 // const corsOptions = {
