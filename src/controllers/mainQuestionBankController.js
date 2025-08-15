@@ -529,55 +529,110 @@ exports.getQuestionToAddCategory = async (req, res) => {
 }
 exports.getAllQBQuestionByCAtegryIdWithUserResponse = async (req, res) => {
   try {
-    const { userId } = req.params
-    const questions = await MainQuestionBank.find({ isQuestionBank: true, isDeleted: false });
-    const questionsWithAttemptStatus = await Promise.all(questions.map(async (question) => {
-      const module = await NewModule.findOne({ module_code: question.module_code });
-      let attempted = false;
-      let attemptDetails = null;
-      const userProgress = await UserMainQuestionBankProgress.findOne({
-        moduleId: module._id
+    const { userId } = req.params;
+    
+    // Validate userId
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid user ID' 
       });
-      // console.log("userProgress", userProgress);
-      let userSpecificProgress = null;
-      if (userProgress) {
-        userSpecificProgress =
-          userProgress.progress.find(
-            p => {
-              return p.userId.equals(userId);
+    }
+
+    // Get all questions with pagination and error handling
+    const questions = await MainQuestionBank.find({ 
+      isQuestionBank: true, 
+      isDeleted: false 
+    }).lean(); // Use lean() for better performance
+
+    if (!questions || questions.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No questions found' 
+      });
+    }
+
+    // Process questions with user attempt status
+    const questionsWithAttemptStatus = await Promise.all(
+      questions.map(async (question) => {
+        try {
+          // Find module with error handling
+          const module = await NewModule.findOne({ 
+            module_code: question.module_code 
+          }).select('_id').lean();
+
+          if (!module) {
+            console.warn(`Module not found for question ${question._id}`);
+            return {
+              ...question,
+              attempted: false,
+              attemptDetails: null,
+              moduleError: 'Module not found'
+            };
+          }
+
+          // Find user progress with error handling
+          const userProgress = await UserMainQuestionBankProgress.findOne({
+            moduleId: module._id
+          }).lean();
+
+          let attempted = false;
+          let attemptDetails = null;
+          let userSpecificProgress = null;
+
+          if (userProgress) {
+            userSpecificProgress = userProgress.progress.find(p => 
+              p.userId && p.userId.equals(userId)
+            );
+
+            if (userSpecificProgress) {
+              const userAttempt = userSpecificProgress.answered_Questions.find(
+                q => q.questionBankId === question._id.toString()
+              );
+
+              if (userAttempt) {
+                attempted = true;
+                attemptDetails = {
+                  answer: userAttempt.answer,
+                  finalResult: userAttempt.finalResult,
+                  output: userAttempt.output,
+                  choosen_option: userAttempt.choosen_option
+                };
+              }
             }
-          );
-      }
+          }
 
-      if (userSpecificProgress) {
-        const userAttempt = userSpecificProgress?.answered_Questions.find(
-          q => q.questionBankId === question._id.toString()
-        );
+          return {
+            ...question,
+            attempted,
+            attemptDetails: attempted ? attemptDetails : null
+          };
 
-        if (userAttempt) {
-          attempted = true;
-          attemptDetails = {
-            answer: userAttempt.answer,
-            finalResult: userAttempt.finalResult,
-            output: userAttempt.output,
-            choosen_option: userAttempt.choosen_option
+        } catch (error) {
+          console.error(`Error processing question ${question._id}:`, error);
+          return {
+            ...question,
+            attempted: false,
+            attemptDetails: null,
+            processingError: 'Error loading attempt data'
           };
         }
-      }
+      })
+    );
 
+    res.status(200).json({ 
+      success: true, 
+      data: questionsWithAttemptStatus 
+    });
 
-      return {
-        ...question.toObject(),
-        attempted,
-        attemptDetails: attempted ? attemptDetails : null
-      };
-    }));
-    res.status(200).json({ success: true, data: questionsWithAttemptStatus });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    console.error('Server error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error',
+      error: error.message // Include error message for debugging
+    });
   }
-
 };
 
 exports.getALLTIYQuestionsWithUserResponse = async (req, res) => {
