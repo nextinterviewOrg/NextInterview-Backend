@@ -4,9 +4,7 @@ const mongoose = require("mongoose");
 const NewModule = require("../Models/addNewModuleModel");
 
 exports.createUserQuestionBankProgress = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
+    // Remove transaction for standalone MongoDB
     try {
         const {
             moduleId,
@@ -19,33 +17,46 @@ exports.createUserQuestionBankProgress = async (req, res) => {
         } = req.body;
         console.log(req.body);
 
+        // Input validation
         if (!moduleId || !userId || !questionBankId) {
-            await session.abortTransaction();
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
+
+        // Find module
         const module = await NewModule.findOne({ module_code: moduleId });
         if (!module) {
-            await session.abortTransaction();
             return res.status(404).json({ success: false, message: "Module not found" });
         }
+
+        // Find question
         const question = await UserMainQuestionBank.findById(questionBankId);
         if (!question) {
-            await session.abortTransaction();
             return res.status(404).json({ success: false, message: "Question not found" });
         }
+
         const question_type = question.question_type;
+        
+        // Validate MCQ question
         if (question_type === 'mcq' && !choosen_option) {
-            await session.abortTransaction();
-            return res.status(400).json({ success: false, message: "Chosen option required for MCQ questions" });
+            return res.status(400).json({ 
+                success: false, 
+                message: "Chosen option required for MCQ questions" 
+            });
         }
+
+        // Determine answer status
         let answerStatus = null;
-        if (question.question_type === 'mcq') {
-            answerStatus = question.correct_option === choosen_option ? true : false;
+        if (question_type === 'mcq') {
+            answerStatus = question.correct_option === choosen_option;
         } else {
-            console.log("question.answer", question.answer);
-            answerStatus = question.answer === answer ? true:false;
+            answerStatus = question.answer === answer;
         }
-        let moduleProgress = await UserMainQuestionBankProgress.findOne({ moduleId: module._id }).session(session);
+
+        // Find or create progress document
+        let moduleProgress = await UserMainQuestionBankProgress.findOne({ 
+            moduleId: module._id 
+        });
+
         if (!moduleProgress) {
             moduleProgress = new UserMainQuestionBankProgress({
                 moduleId: module._id,
@@ -61,18 +72,20 @@ exports.createUserQuestionBankProgress = async (req, res) => {
                     }]
                 }]
             });
-            await moduleProgress.save({ session });
-            await session.commitTransaction();
+            await moduleProgress.save();
 
             return res.status(201).json({
                 success: true,
                 message: "Module created with initial question",
                 data: moduleProgress,
                 question: question,
-                finalResult:answerStatus
+                finalResult: answerStatus
             });
         }
-        const userProgress = moduleProgress.progress.find(p => p.userId.equals(userId))
+
+        // Find user progress
+        const userProgress = moduleProgress.progress.find(p => p.userId.equals(userId));
+
         if (!userProgress) {
             moduleProgress.progress.push({
                 userId,
@@ -85,46 +98,48 @@ exports.createUserQuestionBankProgress = async (req, res) => {
                     finalResult: question_type === 'coding' ? finalResult : answerStatus
                 }]
             });
-            await moduleProgress.save({ session });
-            await session.commitTransaction();
+            await moduleProgress.save();
+            
             return res.status(200).json({
                 success: true,
                 message: "User added to module with new question",
                 data: moduleProgress,
                 question: question,
-                finalResult:answerStatus,
+                finalResult: answerStatus,
                 output,
-                finalResult,
-
             });
         }
+
+        // Check if question already exists
         const existingQuestion = userProgress.answered_Questions.find(q =>
             q.questionBankId === questionBankId
         );
+
         if (existingQuestion) {
             userProgress.answered_Questions = userProgress.answered_Questions.map(q => {
                 if (q.questionBankId === questionBankId) {
-                    q.answer = answer;
-                    q.question_type = question_type;
-                    q.choosen_option = question_type === 'mcq' ? choosen_option : undefined;
-                    q.output = question_type === 'coding' ? output : undefined;
-                    q.finalResult = question_type === 'coding' ? finalResult : answerStatus;
+                    return {
+                        ...q,
+                        answer,
+                        question_type,
+                        choosen_option: question_type === 'mcq' ? choosen_option : undefined,
+                        output: question_type === 'coding' ? output : undefined,
+                        finalResult: question_type === 'coding' ? finalResult : answerStatus
+                    };
                 }
-                return q
-            }
-            );
-            await moduleProgress.save({ session });
+                return q;
+            });
 
-            const existingQuestion = userProgress.answered_Questions.find(q =>
-                q.questionBankId === questionBankId
-            );
-            await session.abortTransaction();
+            await moduleProgress.save();
+
             return res.status(200).json({
                 success: true,
                 message: "Question already answered by user and result updated",
-                data:userProgress.answered_Questions
+                data: userProgress.answered_Questions
             });
         }
+
+        // Add new question to user progress
         userProgress.answered_Questions.push({
             questionBankId,
             answer,
@@ -134,25 +149,23 @@ exports.createUserQuestionBankProgress = async (req, res) => {
             finalResult: question_type === 'coding' ? finalResult : answerStatus
         });
 
-
-
-        await moduleProgress.save({ session });
-        await session.commitTransaction();
-        res.status(200).json({
+        await moduleProgress.save();
+        
+        return res.status(200).json({
             success: true,
             message: "Question added to user progress",
             data: moduleProgress,
             question: question,
-            finalResult:answerStatus
-
+            finalResult: answerStatus
         });
+
     } catch (err) {
-        await session.abortTransaction();
         console.error(err);
-        res.status(500).json({ success: false, message: "Failed to create UserQuestionBankProgress", error: err.message });
-    }
-    finally {
-        session.endSession();
+        return res.status(500).json({ 
+            success: false, 
+            message: "Failed to create UserQuestionBankProgress", 
+            error: err.message 
+        });
     }
 };
 
