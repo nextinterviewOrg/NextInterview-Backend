@@ -604,7 +604,7 @@ exports.getTodaysChallengesWithNextQuestion = async (req, res) => {
         $gte: today,
         $lt: tomorrow
       }
-    });
+    }).sort({ serialNo: -1 }); // Optional: sort by serialNo
 
     if (todaysChallenges.length === 0) {
       return res.status(200).json({
