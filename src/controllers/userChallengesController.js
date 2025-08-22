@@ -119,31 +119,31 @@ exports.createChallenge = async (req, res) => {
     }
 
     // Create the challenge object with the serial number
-    const challengeData = {
-      serialNo: Number(nextSerialNo), // Explicitly convert to Number
-      question_type,
-      QuestionText,
-      description,
-      challenge_date: challenge_date || new Date(),
-      ...(question_type === 'mcq' && {
-        option_a, option_b, option_c, option_d, correct_option
-      }),
-      ...(['single-line', 'multi-line', 'approach', 'case-study'].includes(question_type) && {
-        answer
-      }),
-      ...(question_type === 'coding' && {
-        programming_language,
-        input,
-        output,
-        difficulty,
-        hints,
-        topics,
-        base_code,
-        dbSetupCommands,
-        solutionCode,
-        solutionExplanation
-      })
-    };
+   const challengeData = {
+  serialNo: Number(nextSerialNo), // Explicitly convert to Number
+  question_type,
+  QuestionText,
+  description,
+  difficulty, // ✅ Always include difficulty
+  challenge_date: challenge_date || new Date(),
+  ...(question_type === 'mcq' && {
+    option_a, option_b, option_c, option_d, correct_option
+  }),
+  ...(['single-line', 'multi-line', 'approach', 'case-study'].includes(question_type) && {
+    answer
+  }),
+  ...(question_type === 'coding' && {
+    programming_language,
+    input,
+    output,
+    hints,
+    topics,
+    base_code,
+    dbSetupCommands,
+    solutionCode,
+    solutionExplanation
+  })
+};
     console.log( "challengeData", challengeData);
 
     // Create and save the new challenge
@@ -643,6 +643,7 @@ exports.getTodaysChallengesWithNextQuestion = async (req, res) => {
       const progress = progressMap.get(challenge._id.toString());
       return {
         ...challenge.toObject(),
+        difficulty: challenge.difficulty,
         userStatus: progress ? progress.status : "not attempted",
         answer: progress ? progress.answer : null,
         finalResult: progress ? progress.finalResult : null,
