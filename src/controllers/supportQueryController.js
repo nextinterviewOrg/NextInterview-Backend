@@ -246,14 +246,36 @@ const sendMessageFromAdmin = async (req, res) => {
 // };
 
 const sendMessageFromUser = async (req, res) => {
-    console.log("✅ API endpoint reached");
-    
-    // Immediately respond without any database operations
+  try {
+    const { queryId } = req.params;
+    const { message } = req.body;
+
+    const supportQuery = await SupportQuery.findById(queryId);
+    if (!supportQuery) {
+      return res.status(404).json({ message: "Support query not found" });
+    }
+
+    const newMessage = {
+      from: "user",
+      to: "admin",
+      message,
+      date: new Date()
+    };
+
+    supportQuery.communicationLog.push(newMessage);
+    await supportQuery.save();
+
     res.status(200).json({
-        message: "Basic API test - working",
-        timestamp: new Date().toISOString()
+      message: "Message saved successfully",
+      data: newMessage, // ✅ return only the new message
+      queryId: supportQuery._id,
+      timestamp: new Date().toISOString()
     });
+  } catch (error) {
+    res.status(500).json({ message: "Error sending message", error: error.message });
+  }
 };
+
 
 // Get chat log for a specific support query
 const getChatLog = async (req, res) => {
