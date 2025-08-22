@@ -32,9 +32,19 @@ const supportQuerySchema = new mongoose.Schema({
     },
     communicationLog: [
         {
-            date: { type: Date, default: Date.now }, // The date the log entry was created
-            message: String,
-            
+            date: { type: Date, default: Date.now },
+            from: {
+                type: mongoose.Schema.Types.Mixed,
+                required: false // Change to false
+            },
+            to: {
+                type: mongoose.Schema.Types.Mixed,
+                required: false // Change to false
+            },
+            message: {
+                type: String,
+                required: true
+            }
         }
     ],
 }, { timestamps: true });
