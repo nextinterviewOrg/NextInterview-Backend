@@ -247,40 +247,35 @@ const sendMessageFromAdmin = async (req, res) => {
 
 const sendMessageFromUser = async (req, res) => {
   try {
-    console.log("✅ API endpoint reached");
-
     const { queryId } = req.params;
     const { message } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ error: "Message text is required" });
-    }
-
-    // find support query by ID
     const supportQuery = await SupportQuery.findById(queryId);
-
     if (!supportQuery) {
-      return res.status(404).json({ error: "Support query not found" });
+      return res.status(404).json({ message: "Support query not found" });
     }
 
-    supportQuery.communicationLog.push({
-      from: "user", 
-      to: "admin", 
-      message: message
-    });
+    const newMessage = {
+      from: "user",
+      to: "admin",
+      message,
+      date: new Date()
+    };
 
+    supportQuery.communicationLog.push(newMessage);
     await supportQuery.save();
 
     res.status(200).json({
       message: "Message saved successfully",
-      data: supportQuery,
+      data: newMessage, // ✅ return only the new message
+      queryId: supportQuery._id,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error("❌ Error saving message:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Error sending message", error: error.message });
   }
 };
+
 
 // Get chat log for a specific support query
 const getChatLog = async (req, res) => {
