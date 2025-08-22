@@ -170,90 +170,90 @@ const sendMessageFromAdmin = async (req, res) => {
 };
 
 // Send message from user to admin
-// const sendMessageFromUser = async (req, res) => {
-//     // Set timeout for the entire request
-//     req.setTimeout(3000); // 30 seconds
-    
-//     try {
-//         console.log("1. Starting sendMessageFromUser function");
-//         const { queryId } = req.params;
-//         const { message } = req.body;
-        
-//         console.log("2. Received params:", { queryId, message });
-        
-//         // Check if user is authenticated
-//         if (!req.user || !req.user.id) {
-//             console.log("3. Authentication failed - no user or user id");
-//             return res.status(401).json({ message: "Authentication required" });
-//         }
-        
-//         const userId = req.user.id;
-//         console.log("4. User ID:", userId);
-
-//         console.log("5. Starting SupportQuery.findById");
-//         // Add timeout to database query
-//         const supportQuery = await SupportQuery.findById(queryId).maxTimeMS(10000);
-//         console.log("6. Found support query:", supportQuery ? supportQuery._id : "null");
-        
-//         if (!supportQuery) {
-//             console.log("7. Support query not found");
-//             return res.status(404).json({ message: "Support query not found" });
-//         }
-
-//         console.log("8. Checking MongoDB connection state:");
-//         console.log("Connection readyState:", mongoose.connection.readyState);
-//         // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-
-//         // Verify the user owns this query - use findById instead of populate
-//         console.log("9. Verifying user ownership");
-//         if (supportQuery.user_id.toString() !== userId) {
-//             console.log("10. Unauthorized access - user doesn't own query");
-//             return res.status(403).json({ message: "Unauthorized access" });
-//         }
-
-//         // Store user as ObjectId reference and admin as string
-//         console.log("11. Adding message to communication log");
-//         supportQuery.communicationLog.push({
-//             from: supportQuery.user_id,
-//             to: "admin",
-//             message: message,
-//             date: new Date()
-//         });
-
-//         if (supportQuery.status === "Closed") {
-//             console.log("12. Changing status from Closed to Reopened");
-//             supportQuery.status = "Reopened";
-//         }
-
-//         console.log("13. Starting save operation");
-//         await supportQuery.save();
-//         console.log("14. Save operation completed");
-
-//         // Return simple success response
-//         console.log("15. Sending response");
-//         res.status(200).json({
-//             message: "User message sent successfully",
-//             success: true,
-//             queryId: supportQuery._id
-//         });
-//         console.log("16. Response sent successfully");
-
-//     } catch (error) {
-//         console.error("ERROR in sendMessageFromUser:", error);
-//         console.error("Error stack:", error.stack);
-//         res.status(500).json({ message: error.message });
-//     }
-// };
-
 const sendMessageFromUser = async (req, res) => {
-    console.log("✅ API endpoint reached");
+    // Set timeout for the entire request
+    req.setTimeout(3000); // 30 seconds
     
-    // Immediately respond without any database operations
-    res.status(200).json({
-        message: "Basic API test - working",
-        timestamp: new Date().toISOString()
-    });
+    try {
+        console.log("1. Starting sendMessageFromUser function");
+        const { queryId } = req.params;
+        const { message } = req.body;
+        
+        console.log("2. Received params:", { queryId, message });
+        
+        // Check if user is authenticated
+        if (!req.user || !req.user.id) {
+            console.log("3. Authentication failed - no user or user id");
+            return res.status(401).json({ message: "Authentication required" });
+        }
+        
+        const userId = req.user.id;
+        console.log("4. User ID:", userId);
+
+        console.log("5. Starting SupportQuery.findById");
+        // Add timeout to database query
+        const supportQuery = await SupportQuery.findById(queryId).maxTimeMS(10000);
+        console.log("6. Found support query:", supportQuery ? supportQuery._id : "null");
+        
+        if (!supportQuery) {
+            console.log("7. Support query not found");
+            return res.status(404).json({ message: "Support query not found" });
+        }
+
+        console.log("8. Checking MongoDB connection state:");
+        console.log("Connection readyState:", mongoose.connection.readyState);
+        // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+
+        // Verify the user owns this query - use findById instead of populate
+        console.log("9. Verifying user ownership");
+        if (supportQuery.user_id.toString() !== userId) {
+            console.log("10. Unauthorized access - user doesn't own query");
+            return res.status(403).json({ message: "Unauthorized access" });
+        }
+
+        // Store user as ObjectId reference and admin as string
+        console.log("11. Adding message to communication log");
+        supportQuery.communicationLog.push({
+            from: supportQuery.user_id,
+            to: "admin",
+            message: message,
+            date: new Date()
+        });
+
+        if (supportQuery.status === "Closed") {
+            console.log("12. Changing status from Closed to Reopened");
+            supportQuery.status = "Reopened";
+        }
+
+        console.log("13. Starting save operation");
+        await supportQuery.save();
+        console.log("14. Save operation completed");
+
+        // Return simple success response
+        console.log("15. Sending response");
+        res.status(200).json({
+            message: "User message sent successfully",
+            success: true,
+            queryId: supportQuery._id
+        });
+        console.log("16. Response sent successfully");
+
+    } catch (error) {
+        console.error("ERROR in sendMessageFromUser:", error);
+        console.error("Error stack:", error.stack);
+        res.status(500).json({ message: error.message });
+    }
 };
+
+// const sendMessageFromUser = async (req, res) => {
+//     console.log("✅ API endpoint reached");
+    
+//     // Immediately respond without any database operations
+//     res.status(200).json({
+//         message: "Basic API test - working",
+//         timestamp: new Date().toISOString()
+//     });
+// };
 
 // Get chat log for a specific support query
 const getChatLog = async (req, res) => {
