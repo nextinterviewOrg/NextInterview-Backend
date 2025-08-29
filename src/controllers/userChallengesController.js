@@ -406,7 +406,9 @@ exports.getTodaysChallengesWithStatus = async (req, res) => {
         answer: progress ? progress.answer : null,
         finalResult: progress ? progress.finalResult : null,
         lastAttempted: progress ? progress.timestamp : null,
-        topics: challenge.topics
+        topics: challenge.topics,
+        difficulty: challenge.difficulty,
+        question_type: challenge.question_type
       };
     });
 

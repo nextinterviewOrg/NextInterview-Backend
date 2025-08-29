@@ -18,6 +18,7 @@ const QuestionBankSchema = new mongoose.Schema({
     message: 'level must be one of the following: easy, medium, hard'
   },
   question: String,
+  description: String,
   answer: String,
   option_a: String,
   option_b: String,

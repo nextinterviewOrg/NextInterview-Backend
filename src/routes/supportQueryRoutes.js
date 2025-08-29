@@ -13,7 +13,7 @@ router.get("/getSupportStatistics/stats", supportQueryController.getSupportQuery
 router.post("/:queryId/admin-message", supportQueryController.sendMessageFromAdmin);
 
 // Send message from user to admin
-router.post("/:queryId/user-message", supportQueryController.sendMessageFromUser);
+router.get("/:queryId/user-message", auth, supportQueryController.sendMessageFromUser);
 
 // Get chat log for a specific query
 router.get("/:queryId/chatlog", supportQueryController.getChatLog);

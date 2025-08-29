@@ -188,6 +188,7 @@ async function processMainQuestionBankCSV(filePath, DataModel,) {
           question_type: row.question_type,
           reference: row.reference,
           question: row.question,
+          description: row.description,
           answer: row.answer,
           mcq_question: row.mcq_question,
           option_a: row.option_a,
