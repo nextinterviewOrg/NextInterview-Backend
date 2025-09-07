@@ -447,7 +447,6 @@ exports.upgradeSubscription = async (req, res) => {
     user.subscription_status = newSubscription.status;
     user.subscription_start = new Date(newSubscription.start_at * 1000);
     user.subscription_end = new Date(newSubscription.end_at * 1000);
-    user.subscription_status = "created";
 
     // user.subscription_renewal_history.push({
     //   subscription_id: newSubscription.id,
