@@ -113,9 +113,9 @@ exports.createSubscription = async (req, res) => {
     user.razorpay_plan_id = plan.razorpay_plan_id;
     user.razorpay_subscription_id = subscription.id;
     user.subscription_status = subscription.status;
-    user.subscription_start = new Date(subscription.start_at * 1000),
-      user.subscription_end = new Date(subscription.end_at * 1000),
-      await user.save();
+    user.subscription_start = new Date(subscription.start_at * 1000);
+    user.subscription_end = new Date(subscription.end_at * 1000);
+    await user.save();
 
     res.json({
       success: true,
