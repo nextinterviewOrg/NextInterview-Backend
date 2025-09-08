@@ -64,10 +64,11 @@ exports.togglePlanStatus = async (req, res) => {
 exports.getAllPlans = async (req, res) => {
   const onlyActive = req.query.active === "true";
   try {
-    const filter = onlyActive ? { isActive: true } : {};
-    const plans = await SubscriptionPlan.find(filter);
+    const plans = await SubscriptionPlan.find(
+      { isActive: true }
+    );
 
-    res.json({ success: true, plans, count: plans.length });
+    res.json({ success: true, plans });
   } catch (error) {
     console.error("Error fetching plans:", error);
     res.status(500).json({ success: false, message: "Server error while fetching plans" });
