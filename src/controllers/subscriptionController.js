@@ -64,11 +64,10 @@ exports.togglePlanStatus = async (req, res) => {
 exports.getAllPlans = async (req, res) => {
   const onlyActive = req.query.active === "true";
   try {
-    const plans = await SubscriptionPlan.find(
-      { isActive: true }
-    );
+    const filter = onlyActive ? { isActive: true } : {};
+    const plans = await SubscriptionPlan.find(filter);
 
-    res.json({ success: true, plans });
+    res.json({ success: true, plans, count: plans.length });
   } catch (error) {
     console.error("Error fetching plans:", error);
     res.status(500).json({ success: false, message: "Server error while fetching plans" });
@@ -113,9 +112,9 @@ exports.createSubscription = async (req, res) => {
     user.razorpay_plan_id = plan.razorpay_plan_id;
     user.razorpay_subscription_id = subscription.id;
     user.subscription_status = subscription.status;
-    user.subscription_start = new Date(subscription.start_at * 1000),
-      user.subscription_end = new Date(subscription.end_at * 1000),
-      await user.save();
+    user.subscription_start = new Date(subscription.start_at * 1000);
+    user.subscription_end = new Date(subscription.end_at * 1000);
+    await user.save();
 
     res.json({
       success: true,
