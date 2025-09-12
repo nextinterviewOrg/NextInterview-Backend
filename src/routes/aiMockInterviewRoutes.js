@@ -14,6 +14,7 @@ const {
     speechToText,
     endInterviewandStoreInteractions
 } = require("../controllers/aiMockInterviewController");
+const requireActiveSubscription = require("../middleware/requireActiveSubscription");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
@@ -26,18 +27,18 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 
-router.post("/createMockInterviewAssistant", createAiAssistant);
-router.get("/getMockInterviewAssistants", getAiAssistants);
-router.get("/getMockInterviewAssistants/:id", getAiAssistantsById);
-router.put("/updateMockInterviewAssistants/:id", modifyAiAssistant);
-router.delete("/deleteMockInterviewAssistants/:id", deleteAiAssistant);
-router.post("/createThread", createThread);
-router.post("/createThreadandRun", createAndRunThread);
-router.post("/createMessage",createMessage);
-router.post("/runThread", runThread);
-router.post("/checkThreadStatus", checkStatus);
-router.post("/textToSpeech/", textToSpeech);
-router.post("/speechToText",upload.single("speechFile"), speechToText);
-router.post("/EndInterview",endInterviewandStoreInteractions)
+router.post("/createMockInterviewAssistant", requireActiveSubscription, createAiAssistant);
+router.get("/getMockInterviewAssistants", requireActiveSubscription, getAiAssistants);
+router.get("/getMockInterviewAssistants/:id", requireActiveSubscription, getAiAssistantsById);
+router.put("/updateMockInterviewAssistants/:id", requireActiveSubscription, modifyAiAssistant);
+router.delete("/deleteMockInterviewAssistants/:id", requireActiveSubscription, deleteAiAssistant);
+router.post("/createThread", requireActiveSubscription, createThread);
+router.post("/createThreadandRun", requireActiveSubscription, createAndRunThread);
+router.post("/createMessage", requireActiveSubscription, createMessage);
+router.post("/runThread", requireActiveSubscription, runThread);
+router.post("/checkThreadStatus", requireActiveSubscription, checkStatus);
+router.post("/textToSpeech/", requireActiveSubscription, textToSpeech);
+router.post("/speechToText", requireActiveSubscription, upload.single("speechFile"), speechToText);
+router.post("/EndInterview", requireActiveSubscription, endInterviewandStoreInteractions)
 
 module.exports = router;
